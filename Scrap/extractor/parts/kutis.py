@@ -1,6 +1,8 @@
 import aiohttp
 from bs4 import BeautifulSoup
 
+from Scrap.extractor.parts.constants import *
+
 class KutisExtractor:
     def __init__(self, studentId: str, password: str):
         self.studentId: str = studentId
@@ -8,12 +10,31 @@ class KutisExtractor:
 
         self.kutisSession: aiohttp.ClientSession | None = None
 
-        self.kutisLoginUrl: str = "https://kutis.kyonggi.ac.kr/webkutis/view/hs/wslogin/loginCheck.jsp"
-        self.kutisMainUrl: str = "https://kutis.kyonggi.ac.kr/webkutis/view/main/mypage.jsp?flag=2"
-        self.kutisTimetableUrl: str = "https://kutis.kyonggi.ac.kr/webkutis/view/hs/wssu3/wssu330s.jsp?m_menu=wsco1s05&s_menu=wssu330s"
+
+    async def _kutisFetch(self, url: str) -> BeautifulSoup:
+        """
+        GET 요청을 보내고, 응답을 BeautifulSoup로로 변환하여 반환합니다.
+
+        인증 세션이 없다면 생성을 시도합니다.
+
+        Parameters:
+            url (str): 요청 Url
+        
+        Returns:
+            response (str): 응답 데이터
+        """
+        try:
+            if self.kutisSession == None:
+                await self._getKutisSession()
+
+            async with self.kutisSession.get(url) as response:
+                data = await response.text()
+                return BeautifulSoup(data, 'lxml')
+        except Exception as e:
+            raise str(e)
 
 
-    async def getKutisSession(self):
+    async def _getKutisSession(self):
         """
         kutisSession 인스턴스 변수에 Kutis 인증 세션을 할당합니다.
         """
@@ -31,7 +52,7 @@ class KutisExtractor:
         self.kutisSession = aiohttp.ClientSession(headers=headers)
 
         try:
-            async with self.kutisSession.post(self.kutisLoginUrl, data=loginData, allow_redirects=False) as loginResponse:
+            async with self.kutisSession.post(KUTIS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 if loginResponse.status != 302:
                     raise Exception("KUTIS Authentication Fail")
                 
@@ -47,28 +68,7 @@ class KutisExtractor:
         except Exception as e:
             await self.kutisSession.close()
             self.kutisSession = None
-            raise str(e)
-
-
-    async def fetch(self, url):
-        """
-        GET 요청을 보내고, 응답을 문자열로 변환하여 반환합니다.
-
-        인증 세션이 없다면 얻기를 시도합니다.
-
-        Parameters:
-            url (str): 요청 Url
-        
-        Returns:
-            response (str): 응답 데이터
-        """
-        try:
-            if self.kutisSession == None:
-                await self.getKutisSession()
-            async with self.kutisSession.get(url) as response:
-                return await response.text()
-        except Exception as e:
-            raise str(e)
+            raise Exception(str(e))
 
 
     async def getTimetable(self):
@@ -84,8 +84,7 @@ class KutisExtractor:
             days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
             period = 0
 
-            data = await self.fetch(self.kutisTimetableUrl)
-            content = BeautifulSoup(data, 'lxml')
+            content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
             tables = content.find_all('table', class_='list06')
             timetable = tables[1]
 
@@ -112,4 +111,4 @@ class KutisExtractor:
         except Exception as e:
             await self.kutisSession.close()
             self.kutisSession = None
-            raise str(e)
+            raise Exception(str(e))
