@@ -1,3 +1,4 @@
+import re
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
@@ -31,6 +32,7 @@ class LmsExtractor:
             async with self.lmsSession.get(url) as response:
                 data = await response.text()
                 return BeautifulSoup(data, 'lxml')
+            
         except Exception as e:
             raise Exception(str(e))
 
@@ -72,7 +74,7 @@ class LmsExtractor:
             raise Exception(str(e))
 
 
-    async def getUserData(self) -> dict:
+    async def _getUserData(self) -> dict:
         """
         사용자 정보를 스크래핑합니다.
 
@@ -95,11 +97,11 @@ class LmsExtractor:
             await self.lmsSession.close()
             self.lmsSession = None
             raise Exception(str(e))
-    
+
 
     def _getDepartment(self, major: str) -> str:
         """
-        전공을 바탕으로 학부를 판별합니다.
+        전공으로 학부를 판별합니다.
 
         Parameters:
             major: 전공
@@ -134,7 +136,7 @@ class LmsExtractor:
             if major in majors:
                 return department
         return ""
-    
+
 
     async def _getCourseList(self) -> list:
         """
@@ -172,9 +174,11 @@ class LmsExtractor:
             return courseList
         
         except Exception as e:
+            await self.lmsSession.close()
+            self.lmsSession = None
             raise Exception(str(e))
 
-    
+
     async def _getCourseActivites(self, url: str) -> list:
         """
         강좌의 주차별 활동 목록을 스크래핑합니다.
@@ -191,8 +195,10 @@ class LmsExtractor:
             content = await self._lmsFetch(url)
             sections = content.find_all('li', id=re.compile(r'section-[1-9]\d*'))
 
+            # 활동 목록 스크래핑 비동기 처리
             tasks = [self._getActivites(section) for section in sections]
             courseActivityList = await asyncio.gather(*tasks)
+
             return courseActivityList
         
         except Exception as e:
@@ -211,54 +217,53 @@ class LmsExtractor:
         """
         try:
             activityList = []
+
+            # 활동 요소 추출
             activities = content.find_all('li', class_='activity')
-            if activities:
-                for activity in activities:
-                    activityData = {}
-                    # 활동 유형 스크래핑
-                    classList = activity.get('class')
-                    if classList:
-                        activityType = self.activityTypes.get(classList[1], classList[1])
-                        # text 유형(텍스트) 무시
-                        if activityType == 'text':
-                            continue
-                        else:
-                            activityData['type'] = activityType
-                        
-                        # Video 유형 추가 스크래핑
-                        if activityType == 'video':
-                            deadlineElement = activity.find('span', class_='text-ubstrap')
-                            videoTimeElement = activity.find('span', class_='text-info')
-                            if deadlineElement and videoTimeElement:
-                                deadline = deadlineElement.text.strip()
-                                videoTime = videoTimeElement.text.strip().replace(", ", "")
-                                activityData['deadline'] = deadline
-                                activityData['time'] = videoTime
-                            
-                    # 활동 제목 스크래핑
-                    titleElement = activity.find('span', class_='instancename')
-                    if titleElement:
-                        # 자식 요소 제거
-                        childElement = titleElement.find('span', class_='accesshide')
-                        if childElement:
-                            childElement.extract()
-                        activityTitle = titleElement.text.strip()
-                        activityData['title'] = activityTitle
+            for activity in activities:
+                activityData = {}
 
-                        # 활동 링크 스크래핑
-                        linkElement = activity.find('a')
-                        if linkElement:
-                            activityLink = linkElement.get('href')
-                            activityData['link'] = activityLink
+                # 활동 이름, 링크 스크래핑
+                titleElement = activity.find('span', class_='instancename')
+                if titleElement:
+                    # 활동 이름 스크래핑
+                    childElement = titleElement.find('span', class_='accesshide')
+                    if childElement:
+                        childElement.extract()
+                    activityData['activityName'] = titleElement.text.strip()
 
-                        # 활동 객체 추가
-                        activityList.append(activityData)
+                    # 활동 링크 스크래핑
+                    linkElement = activity.find('a')
+                    if linkElement:
+                        activityData['activityLink'] = linkElement.get('href')
+
+                # 활동 유형 스크래핑
+                classList = activity.get('class', [])
+                if len(classList) > 1:
+                    activityType = LMS_ACTIVITY_TYPES.get(classList[1], classList[1])
+                    # text 유형(텍스트) 무시
+                    if activityType == 'text':
+                        continue
+                    else:
+                        activityData['activityType'] = activityType
+                    
+                    # Video 유형 추가 스크래핑
+                    if activityType == 'video':
+                        deadlineElement = activity.find('span', class_='text-ubstrap')
+                        videoTimeElement = activity.find('span', class_='text-info')
+                        if deadlineElement and videoTimeElement:
+                            activityData['lectureDeadline'] = deadlineElement.text.strip()
+                            activityData['lectureTime'] = videoTimeElement.text.strip().replace(", ", "")
+                
+                # 활동 객체 추가
+                activityList.append(activityData)
+            
             return activityList
         
         except Exception as e:
             raise Exception(str(e))
 
-    
+
     async def _getAssignment(self, url: str) -> dict:
         """
         과제 정보를 스크래핑합니다.
@@ -280,18 +285,14 @@ class LmsExtractor:
             assignmentData['title'] = title
 
             # 과제 설명 스크래핑
-            descriptionContainer = assignmentContainer.find ('div', id='intro')
-            if descriptionContainer:
-                description = descriptionContainer.get_text(separator='\n', strip=True)
-                assignmentData['description'] = description
+            descriptionContainer = assignmentContainer.find('div', id='intro')
+            assignmentData['description'] = descriptionContainer.get_text(separator='\n', strip=True)
             
             # 과제 정보 스크래핑
             table = assignmentContainer.find('table', class_='generaltable').find_all('tr')
-            assignmentData['submitStatus'] = table[0].find_all('td')[1].get_text(strip=True)
-            assignmentData['gradingStatus'] = table[1].find_all('td')[1].get_text(strip=True)
-            assignmentData['deadline'] = table[2].find_all('td')[1].get_text(strip=True)
-            assignmentData['leftTime'] = table[3].find_all('td')[1].get_text(strip=True)
-            assignmentData['lastModified'] = table[4].find_all('td')[1].get_text(strip=True)
+            keys = ['submitStatus', 'gradingStatus', 'deadline', 'leftTime', 'lastModified']
+            for key, row in zip(keys, table[:5]):
+                assignmentData[key] = row.find_all('td')[1].get_text(strip=True)
 
             return assignmentData
         
@@ -309,39 +310,43 @@ class LmsExtractor:
         Returns:
             lectureData: 온라인 강의 출석 상태 정보
         """
-        try:
-            content = await self._lmsFetch(url)
+        def extractAttendance(cell):
+            return cell.text.strip() == 'O'
 
+        try:
+            attendanceData = {}
+
+            content = await self._lmsFetch(url)
             tableContainer = content.find('table', class_='user_progress_table')
             table = tableContainer.select('tbody tr')
 
-            attendanceData = {}
-            currentWeek = None
-
             for row in table:
                 cells = row.find_all('td')
+                # 주차 셀 확인
                 if cells[0].text.strip().isdigit():
-                    title = cells[1].text.strip()
-                    if not title:
-                        continue
                     currentWeek = cells[0].text.strip()
-                    attendanceData[currentWeek] = {
-                        'attendance': 'true' if cells[-1].text.strip() == 'O' else 'false',
-                        'lectures': []
-                    }
                     title = cells[1].text.strip()
+                    weekAttendance = extractAttendance(cells[-1])
+                    attendance = extractAttendance(cells[-2])
+
+                    if title:
+                        attendanceData[currentWeek] = {}
+                        attendanceData[currentWeek]['attendance'] = str(weekAttendance).lower()
+                        attendanceData[currentWeek]['lectures'] = []
+                        attendanceData[currentWeek]['lectures'].append({
+                            'title': title,
+                            'attendance': str(attendance).lower()
+                        })
+                # 주차 내부 셀 확인
                 else:
                     title = cells[0].text.strip()
-                
-                attendance = 'true' if cells[-2].text.strip() == 'O' else 'false'
-
-                if title and attendance:
+                    attendance = extractAttendance(cells[-1])
                     attendanceData[currentWeek]['lectures'].append({
                         'title': title,
-                        'attendance': attendance
+                        'attendance': str(attendance).lower()
                     })
                 
             return attendanceData
         
         except Exception as e:
-            raise Exception(str(e))
+            raise Exception(e)
