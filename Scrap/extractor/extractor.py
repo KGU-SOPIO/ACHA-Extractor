@@ -1,3 +1,5 @@
+import time
+
 import asyncio
 import aiohttp
 
@@ -14,21 +16,43 @@ class Extractor(KutisExtractor, LmsExtractor):
 
 
     async def _getCourseDetail(self, course: dict) -> dict:
+        """
+        해당 강좌의 데이터를 스크래핑합니다.
+
+        Parameters:
+            course: 강좌 기본 정보
+        
+        Returns:
+            course: 스크래핑 데이터 추가된 강좌 정보
+        """
         try:
             content = await self._lmsFetch(course['courseLink'])
 
             container = content.find('div', class_='course-content')
             alert = container.find('div', class_='alert')
 
-            if alert is None:
-                noticeTask = self._getCourseNotices(content)
-                activityTask = self._getCourseActivites(content)
-                notices, activities = await asyncio.gather(noticeTask, activityTask)
+            if alert is not None:
+                return course
 
-                course.update({
-                    'notices': notices,
-                    'activities': activities
-                })
+            noticeTask = self._getCourseNotices(content)
+            activityTask = self._getCourseActivites(content)
+            attendanceTask = self._getLectureAttendance(course['lmsCourseCode'], flat=True)
+            notices, activities, attendances = await asyncio.gather(noticeTask, activityTask, attendanceTask)
+
+            if attendances['lmsCourseCode'] == course['lmsCourseCode']:
+                attendanceMap = {lecture['title']: lecture['attendance'] for lecture in attendances['attendanceData']}
+                for weekActivities in activities:
+                    for activity in weekActivities:
+                        if activity.get('activityType') == 'video':
+                            try:
+                                activity['attendance'] = attendanceMap[activity['activityName']]
+                            except KeyError:
+                                raise Exception("강의 정보와 출석 정보가 일치하지 않습니다.")
+
+            course.update({
+                'notices': notices,
+                'activities': activities
+            })
 
             return course
             

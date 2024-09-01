@@ -255,7 +255,7 @@ class LmsExtractor:
         Returns:
             courseActivityList: 강좌 주차별 활동 목록
         """
-        try:
+        try:           
             courseActivityList = []
 
             sections = content.find_all('li', id=re.compile(r'section-[1-9]\d*'))
@@ -375,12 +375,12 @@ class LmsExtractor:
             raise
 
 
-    async def _getLectureAttendance(self, url: str) -> dict:
+    async def _getLectureAttendance(self, lmsCourseCode: str, flat=False) -> dict:
         """
         온라인 강의 출석 상태를 스크래핑합니다.
 
         Parameters:
-            url: 온라인 출석부 url
+            lmsCourseCode: LMS 강의 코드
 
         Returns:
             lectureData: 온라인 강의 출석 상태 정보
@@ -389,41 +389,38 @@ class LmsExtractor:
             return cell.text.strip() == 'O'
 
         try:
-            attendanceData = {}
+            attendanceData = []
 
-            content = await self._lmsFetch(url)
+            content = await self._lmsFetch(LMS_ATTENDANCE_PAGE_URL.format(lmsCourseCode))
             tableContainer = content.find('table', class_='user_progress_table')
             table = tableContainer.select('tbody tr')
 
             for row in table:
                 cells = row.find_all('td')
-                # 주차 셀 확인
-                if cells[0].text.strip().isdigit():
-                    currentWeek = cells[0].text.strip()
-                    title = cells[1].text.strip()
-                    weekAttendance = extractAttendance(cells[-1])
-                    attendance = extractAttendance(cells[-2])
+                title = cells[1].text.strip() if cells[0].text.strip().isdigit() else cells[0].text.strip()
+                attendance = extractAttendance(cells[-2] if cells[0].text.strip().isdigit() else cells[-1])
 
-                    if title:
-                        attendanceData[currentWeek] = {
-                            'attendance': str(weekAttendance).lower(),
-                            'lectures': [{
-                                'title': title,
-                                'attendance': str(attendance).lower()
-                            }]
-                        }
-                
-                # 주차 내부 셀 확인
-                else:
-                    title = cells[0].text.strip()
-                    if title:
-                        attendance = extractAttendance(cells[-1])
-                        attendanceData[currentWeek]['lectures'].append({
+                if title:
+                    if flat:
+                        attendanceData.append({
                             'title': title,
-                            'attendance': str(attendance).lower()
+                            'attendance': attendance
                         })
+                    else:
+                        if cells[0].text.strip().isdigit():
+                            attendanceData.append([{
+                                'title': title,
+                                'attendance': attendance
+                            }])
+                        else:
+                            attendanceData[-1].append({
+                                'title': title,
+                                'attendance': attendance
+                            })
+                elif not flat and cells[0].text.strip().isdigit():
+                    attendanceData.append([])
             
-            return attendanceData
+            return {'lmsCourseCode': lmsCourseCode, 'attendanceData': attendanceData}
         
         except Exception as e:
             raise
