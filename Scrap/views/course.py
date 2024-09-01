@@ -16,13 +16,17 @@ class CourseAPI(APIView):
             studentId = serializer.validated_data.get('studentId')
             password = serializer.validated_data.get('password')
 
-            extractor = Extractor(studentId, password)
-            courses = asyncio.run(extractor.lms())
+            try:
+                extractor = Extractor(studentId, password)
+                courses = asyncio.run(extractor.extractCourse())
+
+                return Response(
+                    {
+                        'courses': courses
+                    },
+                    status = status.HTTP_200_OK
+                )
             
-            return Response(
-                {
-                    'courses': courses
-                },
-                status = status.HTTP_200_OK
-            )
+            except Exception as e:
+                return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

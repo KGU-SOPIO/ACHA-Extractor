@@ -8,6 +8,7 @@ LMS_LOGIN_FAILURE_URL = "https://lms.kyonggi.ac.kr/login.php?errorcode=3"
 
 LMS_MAIN_PAGE_URL = "https://lms.kyonggi.ac.kr/"
 LMS_USER_PAGE_URL = "https://lms.kyonggi.ac.kr/user/user_edit.php"
+LMS_LECTURE_PAGE_URL = "https://lms.kyonggi.ac.kr/mod/xncommons/index.php?id={}"
 
 LMS_ACTIVITY_TYPES = {
     'ubfile': 'file',

@@ -15,7 +15,8 @@ class KutisExtractor:
         """
         GET 요청을 보내고, 응답을 BeautifulSoup로로 변환하여 반환합니다.
 
-        인증 세션이 없다면 생성을 시도합니다.
+        인증 세션이 없다면 예외를 발생시킵니다.
+            - 비동기 요청 시 발생하는 문제 예방
 
         Parameters:
             url (str): 요청 Url
@@ -25,7 +26,7 @@ class KutisExtractor:
         """
         try:
             if self.kutisSession == None:
-                await self._getKutisSession()
+                raise Exception("인증 세션이 생성되지 않았습니다.")
 
             async with self.kutisSession.get(url) as response:
                 data = await response.text()
