@@ -179,6 +179,11 @@ class LmsExtractor:
             content = await self._lmsFetch(noticeUrl)
             container = content.find('tbody')
 
+            # 공지사항 존재 확인
+            firstRow = container.find('td') if container else None
+            if firstRow and firstRow.get('colspan') == '5':
+                return []
+
             # 비동기 작업 생성
             tasks = [
                 self._getNotice(
@@ -234,10 +239,19 @@ class LmsExtractor:
                 ]
 
             # 공지사항 내용 스크래핑
+            contentList = []
             container = content.find('div', class_='text_to_html')
-            noticeObject['content'] = '\n'.join(
-                paragraph.get_text(strip=True) for paragraph in container.find_all('p')
-            ) if container.find_all('p') else container.get_text(strip=True)
+            for element in container.children:
+                if element.name is None:
+                    contentList.append(element.strip())
+                elif element.name == 'p':
+                    contentList.append(element.get_text(strip=True))
+                elif element.name is not None:
+                    allowedAttrs = {'src', 'href'}
+                    element.attrs = {key: value for key, value in element.attrs.items() if key in allowedAttrs}
+                    contentList.append(str(element))
+
+            noticeObject['content'] = '\n'.join(contentList)
 
             return noticeObject
 

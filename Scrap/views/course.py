@@ -6,7 +6,7 @@ from rest_framework import status
 
 from Scrap.extractor.extractor import Extractor
 
-from Scrap.serializer.authentication import LoginSerializer
+from Scrap.serializer.login import LoginSerializer
 
 class CourseAPI(APIView):
     def get(self, request, *args, **kwargs):

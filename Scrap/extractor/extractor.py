@@ -1,5 +1,3 @@
-import time
-
 import asyncio
 import aiohttp
 
@@ -69,7 +67,7 @@ class Extractor(KutisExtractor, LmsExtractor):
             return courseDetails
 
         except Exception as e:
-            raise Exception("Extract Failure")
+            raise Exception(e)
         
         finally:
             if self.lmsSession:
