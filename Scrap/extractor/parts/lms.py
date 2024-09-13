@@ -145,6 +145,10 @@ class LmsExtractor:
             content = await self._lmsFetch(LMS_MAIN_PAGE_URL)
             courseContainer = content.find('div', class_='course_lists')
             courses = courseContainer.find_all('li', class_='course_label_re')
+            
+            # 강좌 존재 확인
+            if not courses:
+                raise Exception("LMS에 강좌가 열리지 않았습니다.")
 
             courseList = [
                 {

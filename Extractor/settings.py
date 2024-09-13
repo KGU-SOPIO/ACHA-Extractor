@@ -138,3 +138,32 @@ STATICFILES_DIRS = [
 
 # Warning : Only For 'collectstatic' Command
 # STATIC_ROOT = "static/"
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '>>> [ {levelname} ] {asctime}\n[ {module} ] {message}',
+            'datefmt': "%Y-%m-%d %H시 %M분 %S초",
+            'style': '{'
+        }
+    },
+    'handlers': {
+        'discord': {
+            'level': 'ERROR',
+            'class': 'Extractor.handlers.DiscordWebhookHandler',
+            'webhookUrl': env('WEBHOOKURL'),
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'extractor': {
+            'handlers': ['discord'],
+            'level': 'INFO',
+            'propagate': False
+        }
+    }
+}
