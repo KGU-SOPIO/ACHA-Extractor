@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +8,7 @@ from Scrap.extractor.extractor import Extractor
 
 from Scrap.serializer.course import CourseSerializer
 
-class CourseAPI(APIView):
+class CourseView(APIView):
     def get(self, request):
         serializer = CourseSerializer(data=request.data)
 

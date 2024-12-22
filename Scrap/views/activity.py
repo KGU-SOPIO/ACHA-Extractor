@@ -8,7 +8,7 @@ from Scrap.extractor.extractor import Extractor
 
 from Scrap.serializer.activity import ActivitySerializer
 
-class ActivityAPI(APIView):
+class ActivityView(APIView):
     def get(self, request):
         serializer = ActivitySerializer(data=request.data)
 

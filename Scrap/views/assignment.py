@@ -8,7 +8,7 @@ from Scrap.extractor.extractor import Extractor
 
 from Scrap.serializer.assignment import AssignmentSerializer
 
-class AssignmentAPI(APIView):
+class AssignmentView(APIView):
     def get(self, request):
         serializer = AssignmentSerializer(data=request.data)
 

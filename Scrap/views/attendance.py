@@ -8,7 +8,7 @@ from Scrap.extractor.extractor import Extractor
 
 from Scrap.serializer.attendance import AttendanceSerializer
 
-class AttendanceAPI(APIView):
+class AttendanceView(APIView):
     def get(self, request):
         serializer = AttendanceSerializer(data=request.data)
 

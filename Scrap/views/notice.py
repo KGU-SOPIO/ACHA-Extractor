@@ -8,7 +8,7 @@ from Scrap.extractor.extractor import Extractor
 
 from Scrap.serializer.notice import NoticeSerializer
 
-class NoticeAPI(APIView):
+class NoticeView(APIView):
     def get(self, request):
         serializer = NoticeSerializer(data=request.data)
 
