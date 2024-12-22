@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from Scrap.serializer.auth import AuthSerializer
 
-class CourseSerializer(serializers.Serializer):
+class _CourseSerializer(serializers.Serializer):
     authentication = AuthSerializer(
         required = True,
         error_messages = {

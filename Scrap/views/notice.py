@@ -1,16 +1,56 @@
 import asyncio
 
-from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import serializers
+
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor.extractor import Extractor
 
-from Scrap.serializer.notice import NoticeSerializer
+from Scrap.serializer.notice import _NoticeSerializer
 
-class NoticeView(APIView):
-    def get(self, request):
-        serializer = NoticeSerializer(data=request.data)
+class NoticeView(GenericAPIView):
+    serializer_class = _NoticeSerializer
+
+    @extend_schema(
+        summary="강좌 공지사항 추출",
+        description="강좌의 모든 공지사항을 추출합니다.",
+        request=_NoticeSerializer,
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="NoticeResponse",
+                fields={
+                    "notices": serializers.ListField(
+                        child=inline_serializer(
+                            name="NoticeData",
+                            fields={
+                                "link": serializers.URLField(),
+                                "content": serializers.CharField(),
+                                "index": serializers.CharField(),
+                                "title": serializers.CharField(),
+                                "date": serializers.DateField(),
+                                "files": serializers.ListField(
+                                    required=False,
+                                    child=inline_serializer(
+                                        name="FileData",
+                                        fields={
+                                            "fileName": serializers.CharField(),
+                                            "fileLink": serializers.URLField(),
+                                        }
+                                    )
+                                ),
+                            }
+                        )
+                    )
+                }
+            ),
+        }
+    )
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             studentId = serializer.validated_data.get("studentId")

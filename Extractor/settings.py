@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Django Rest Framework
     'rest_framework',
+    # DRF Spectacular
+    'drf_spectacular',
     # Apps
     'Scrap'
 ]
@@ -46,7 +48,17 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES' : [
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SOPIO Extractor API',
+    'DESCRIPTION': '널 위해서라면 뭐든지 긁어올 수 있어',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_URLCONF': 'Extractor.urls',
+    'AUTHENTICATION_WHITELIST': []
 }
 
 MIDDLEWARE = [
