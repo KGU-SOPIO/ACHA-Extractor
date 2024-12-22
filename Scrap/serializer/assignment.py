@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.core.validators import RegexValidator
 
 from Scrap.serializer.auth import AuthSerializer
 
@@ -14,8 +15,7 @@ class _AssignmentSerializer(serializers.Serializer):
     code = serializers.CharField(
         label = "과제 코드",
         required = True,
-        min_length = 6,
-        max_length = 6,
+        validators = [RegexValidator(regex=r'^\d{6}$', message="과제 코드는 6자리 숫자여야 합니다.")],
         error_messages = {
             "required": "과제 코드는 필수 항목입니다.",
             "blank": "과제 코드는 필수 항목입니다."
