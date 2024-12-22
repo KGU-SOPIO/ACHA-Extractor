@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,23 +6,24 @@ from rest_framework import status
 
 from Scrap.extractor.extractor import Extractor
 
-from Scrap.serializer.course import CourseSerializer
+from Scrap.serializer.activity import ActivitySerializer
 
-class CourseAPI(APIView):
+class ActivityAPI(APIView):
     def get(self, request):
-        serializer = CourseSerializer(data=request.data)
+        serializer = ActivitySerializer(data=request.data)
 
         if serializer.is_valid():
             studentId = serializer.validated_data.get("studentId")
             password = serializer.validated_data.get("password")
+            courseCode = serializer.validated_data.get("code")
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
-                courses = asyncio.run(extractor.getCourses())
+                activities = asyncio.run(extractor.getCourseActivites(courseCode=courseCode))
 
                 return Response(
                     {
-                        "courses": courses
+                        "activities": activities
                     },
                     status=status.HTTP_200_OK
                 )

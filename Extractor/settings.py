@@ -16,15 +16,12 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # SECRET_KEY
 SECRET_KEY = env('SECRET_KEY')
 
-# SECURITY
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
 
 
 # SECURITY WARNING
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 
 
@@ -81,6 +78,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Extractor.wsgi.application'
+
 
 
 # Database
