@@ -29,6 +29,7 @@ class CourseView(GenericAPIView):
                                 "courseName": serializers.CharField(),
                                 "courseLink": serializers.URLField(),
                                 "courseCode": serializers.CharField(),
+                                "professor": serializers.CharField(),
                                 "notices": serializers.ListField(
                                     required=False,
                                     child=inline_serializer(
