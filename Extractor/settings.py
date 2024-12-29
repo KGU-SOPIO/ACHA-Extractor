@@ -156,23 +156,41 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '>>> [ {levelname} ] {asctime}\n[ {module} ] {message}',
+            'format': '>>> [ {levelname} ] {asctime}\n[ {module} ] {message}\n\n{traceback}',
             'datefmt': "%Y-%m-%d %H시 %M분 %S초",
             'style': '{'
         }
     },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        }
+    },
     'handlers': {
-        'discord': {
-            'level': 'ERROR',
+        'info': {
+            'level': 'INFO',
+            'filters': ['require_debug_false'],
             'class': 'Extractor.handlers.DiscordWebhookHandler',
-            'webhookUrl': env('WEBHOOKURL'),
+            'webhookUrl': env('INFO_WEBHOOKURL'),
+            'formatter': 'verbose'
+        },
+        'warning': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'Extractor.handlers.DiscordWebhookHandler',
+            'webhookUrl': env('WARNING_WEBHOOKURL'),
             'formatter': 'verbose'
         }
     },
     'loggers': {
-        'extractor': {
-            'handlers': ['discord'],
+        'analyst': {
+            'handler': ['info'],
             'level': 'INFO',
+            'propagate': False
+        },
+        'watchmen': {
+            'handlers': ['warning'],
+            'level': 'WARNING',
             'propagate': False
         }
     }

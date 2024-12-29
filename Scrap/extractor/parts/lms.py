@@ -76,6 +76,20 @@ class LmsExtractor:
             raise
 
 
+    async def verifyAuthentication(self):
+        """
+        학교 시스템 인증을 확인합니다.
+
+        Returns:
+            verification: 인증 여부
+        """
+        try:
+            await self._getLmsSession()
+            return "true"
+        except Exception:
+            return "false"
+
+
     async def getUserData(self) -> dict:
         """
         사용자 정보를 스크래핑합니다.
