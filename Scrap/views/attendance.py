@@ -26,7 +26,7 @@ class AttendanceView(GenericAPIView):
                         required=False,
                         child=serializers.ListField(
                             child=inline_serializer(
-                                name="Attendance",
+                                name="AttendanceObject",
                                 fields={
                                     "title": serializers.CharField(),
                                     "attendance": serializers.BooleanField(),

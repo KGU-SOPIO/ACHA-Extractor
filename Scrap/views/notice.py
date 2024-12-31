@@ -24,7 +24,7 @@ class NoticeView(GenericAPIView):
                 fields={
                     "notices": serializers.ListField(
                         child=inline_serializer(
-                            name="NoticeData",
+                            name="NoticeObject",
                             fields={
                                 "link": serializers.URLField(),
                                 "content": serializers.CharField(),
@@ -34,7 +34,7 @@ class NoticeView(GenericAPIView):
                                 "files": serializers.ListField(
                                     required=False,
                                     child=inline_serializer(
-                                        name="FileData",
+                                        name="FileObject",
                                         fields={
                                             "fileName": serializers.CharField(),
                                             "fileLink": serializers.URLField(),

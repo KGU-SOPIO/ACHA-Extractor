@@ -26,7 +26,7 @@ class TimetableView(GenericAPIView):
                 fields={
                     "timetable": serializers.ListField(
                         child=inline_serializer(
-                            name="timetable",
+                            name="TimetableObject",
                             fields={
                                 "courseName": serializers.CharField(),
                                 "courseCode": serializers.CharField(),

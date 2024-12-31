@@ -23,7 +23,7 @@ class AssignmentView(GenericAPIView):
                 name="AssignmentResponse",
                 fields={
                     "assignment": inline_serializer(
-                        name="Assignment",
+                        name="AssignmentObject",
                         fields={
                             "gradingStatus": serializers.CharField(),
                             "deadline": serializers.CharField(),

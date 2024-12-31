@@ -20,7 +20,7 @@ class VerificationView(GenericAPIView):
         request=AuthSerializer,
         responses={
             status.HTTP_200_OK: inline_serializer(
-                name="AuthenticationResponse",
+                name="VerificationResponse",
                 fields={
                     "verification": serializers.BooleanField(),
                     "message": serializers.CharField()

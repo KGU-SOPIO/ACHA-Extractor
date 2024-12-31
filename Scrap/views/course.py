@@ -25,7 +25,7 @@ class CourseView(GenericAPIView):
                 fields={
                     "courses": serializers.ListField(
                         child=inline_serializer(
-                            name="Course",
+                            name="CourseObject",
                             fields={
                                 "courseName": serializers.CharField(),
                                 "courseLink": serializers.URLField(),
@@ -34,7 +34,7 @@ class CourseView(GenericAPIView):
                                 "notices": serializers.ListField(
                                     required=False,
                                     child=inline_serializer(
-                                        name="Notice",
+                                        name="NoticeObject_",
                                         fields={
                                             "link": serializers.URLField(),
                                             "content": serializers.CharField(),
@@ -44,7 +44,7 @@ class CourseView(GenericAPIView):
                                             "files": serializers.ListField(
                                                 required=False,
                                                 child=inline_serializer(
-                                                    name="File",
+                                                    name="FileObject_",
                                                     fields={
                                                         "fileName": serializers.CharField(),
                                                         "fileLink": serializers.URLField(),
@@ -58,7 +58,7 @@ class CourseView(GenericAPIView):
                                     child=serializers.ListField(
                                         required=False,
                                         child=inline_serializer(
-                                            name="Activity",
+                                            name="ActivityObject_",
                                             fields={
                                                 "available": serializers.BooleanField(),
                                                 "activityName": serializers.CharField(),
