@@ -2,7 +2,7 @@ import logging
 import requests
 
 class DiscordWebhookHandler(logging.Handler):
-    def __init__(self, webhookUrl):
+    def __init__(self, webhookUrl: str):
         super().__init__()
         self.webhookUrl = webhookUrl
     
@@ -11,4 +11,4 @@ class DiscordWebhookHandler(logging.Handler):
 
         response = requests.post(url=self.webhookUrl, json={"content": entry})
         if response.status_code != 204:
-            print(f"Send log to discord failure: {response.status_code}")
+            print(f"로그 전송 실패: {response.status_code}")

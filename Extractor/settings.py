@@ -156,7 +156,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '>>> [ {levelname} ] {asctime}\n[ {module} ] {message}\n\n{traceback}',
+            'format': '>>> [ {levelname} ] {asctime}\n[ {module} ] {message}',
             'datefmt': "%Y-%m-%d %H시 %M분 %S초",
             'style': '{'
         }
@@ -176,9 +176,8 @@ LOGGING = {
         },
         'warning': {
             'level': 'ERROR',
-            'filters': ['require_debug_false'],
             'class': 'Extractor.handlers.DiscordWebhookHandler',
-            'webhookUrl': env('WARNING_WEBHOOKURL'),
+            'webhookUrl': env('WARNING_WEBHOOKURL') if env('DEBUG') == 'True' else env('DEBUG_WEBHOOKURL'),
             'formatter': 'verbose'
         }
     },

@@ -11,8 +11,23 @@ from Scrap.extractor.extractor import Extractor
 
 from Scrap.serializer.auth import AuthSerializer
 
-class AuthenticationView(GenericAPIView):
+class VerificationView(GenericAPIView):
     serializer_class = AuthSerializer
+
+    @extend_schema(
+        summary="인증 정보 검증",
+        description="학교 시스템에 로그인하여 인증 정보를 검증합니다.",
+        request=AuthSerializer,
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="AuthenticationResponse",
+                fields={
+                    "verification": serializers.BooleanField(),
+                    "message": serializers.CharField()
+                }
+            )
+        }
+    )
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -23,11 +38,12 @@ class AuthenticationView(GenericAPIView):
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
-                verification = asyncio.run(extractor.verifyAuthentication())
+                verification, message = asyncio.run(extractor.verifyAuthentication())
 
                 return Response(
                     {
-                        "verification": verification
+                        "verification": verification,
+                        "message": message
                     },
                     status=status.HTTP_200_OK
                 )

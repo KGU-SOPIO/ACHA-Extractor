@@ -4,6 +4,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from Scrap.extractor.parts.utils import Utils
+from Scrap.extractor.exception.exception import *
 from Scrap.extractor.parts.constants import *
 
 class LmsExtractor:
@@ -34,8 +35,8 @@ class LmsExtractor:
                 data = await response.text()
                 return BeautifulSoup(data, 'lxml')
             
-        except Exception:
-            raise
+        except Exception as e:
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR) from e
 
  
     async def _getLmsSession(self):
@@ -58,19 +59,21 @@ class LmsExtractor:
         try:
             async with self.lmsSession.post(LMS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 if loginResponse.status != 303:
-                    raise Exception("LMS 인증에 실패했습니다.")
+                    raise ExtractorException(type=ErrorType.LMS_ERROR)
 
                 loginRedirectUrl = loginResponse.headers.get("Location", "")
 
                 if loginRedirectUrl == LMS_LOGIN_FAILURE_URL:
-                    raise Exception("학번 또는 비밀번호를 잘못 입력했습니다.")
+                    # 인증 정보가 잘못된 경우
+                    raise ExtractorException(type=ErrorType.AUTHENTICATION_FAIL)
                 elif LMS_LOGIN_SUCCESS_URL in loginRedirectUrl:
+                    # 로그인 상태 검증
                     async with self.lmsSession.get(LMS_MAIN_PAGE_URL, allow_redirects=False) as verifyResponse:
                         if verifyResponse.status == 303:
-                            raise Exception("로그인에 실패했습니다.")
+                            raise ExtractorException(type=ErrorType.LMS_ERROR)
                     return
                 
-                raise Exception("LMS 인증에 실패했습니다.")
+                raise ExtractorException(type=ErrorType.LMS_ERROR)
 
         except Exception:
             raise
@@ -78,37 +81,29 @@ class LmsExtractor:
 
     async def verifyAuthentication(self):
         """
-        학교 시스템 인증을 확인합니다.
+        학교 시스템에 로그인하여 인증 정보를 확인합니다.
 
         Returns:
             verification: 인증 여부
         """
         try:
             await self._getLmsSession()
-            return "true"
-        except Exception:
-            return "false"
-
-
-    async def getUserData(self) -> dict:
-        """
-        사용자 정보를 스크래핑합니다.
-
-        Returns:
-            userData: 사용자 정보
-        """
-        try:
-            content = await self._lmsFetch(LMS_USER_PAGE_URL)
-
-            userData = {}
-            userData['name'] = content.find('input', id='id_firstname').get('value')
-            userData['college'] = content.find('input', id='id_institution').get('value')
-            userData['major'] = content.find('input', id='id_department').get('value')
-            userData['department'] = Utils.getDepartment(userData['major'])
-            return userData
-
-        except Exception:
-            raise
+            return True, "인증에 성공했습니다."
+        
+        except ExtractorException as e:
+            if e.type != ErrorType.AUTHENTICATION_FAIL:
+                e.logError()
+            return False, e.message
+        
+        except Exception as e:
+            error = ExtractorException(type=ErrorType.SYSTEM_ERROR, *e.args)
+            error.logError()
+            return False, error.message
+        
+        finally:
+            if self.lmsSession:
+                await self.lmsSession.close()
+                self.lmsSession = None
 
 
     async def _getCourseList(self, close: bool=True) -> list:
@@ -125,7 +120,7 @@ class LmsExtractor:
             
             # 강좌 목록 확인
             if not courses:
-                raise Exception("강좌가 존재하지 않습니다.")
+                raise ExtractorException(type=ErrorType.SCRAPE_ERROR, message="강좌가 존재하지 않습니다.", content=content)
 
             courseList = [
                 {
@@ -139,7 +134,7 @@ class LmsExtractor:
             return courseList
         
         except Exception:
-            raise
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content)
 
         finally:
             if close and self.lmsSession:

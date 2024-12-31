@@ -8,6 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor.extractor import Extractor
+from Scrap.extractor.exception.exception import *
 
 from Scrap.serializer.course import _CourseSerializer
 
@@ -103,6 +104,7 @@ class CourseView(GenericAPIView):
                     status=status.HTTP_200_OK
                 )
             
-            except Exception as e:
-                return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except ExtractorException as e:
+                ExtractorException.logError(e)
+                return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

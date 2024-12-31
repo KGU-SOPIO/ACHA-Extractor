@@ -1,6 +1,7 @@
 import aiohttp
 from bs4 import BeautifulSoup
 
+from Scrap.extractor.exception.exception import *
 from Scrap.extractor.parts.constants import *
 
 class KutisExtractor:
@@ -25,14 +26,15 @@ class KutisExtractor:
             response (str): 응답 데이터
         """
         try:
-            if self.kutisSession == None:
-                raise Exception("인증 세션이 생성되지 않았습니다.")
+            if self.kutisSession is None:
+                await self._getKutisSession()
 
             async with self.kutisSession.get(url) as response:
                 data = await response.text()
                 return BeautifulSoup(data, 'lxml')
+        
         except Exception as e:
-            raise str(e)
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR) from e
 
 
     async def _getKutisSession(self):
@@ -46,33 +48,47 @@ class KutisExtractor:
 
         # 로그인 데이터
         loginData = {
-            'id': self.studentId,
-            'pw': self.password
+            "id": self.studentId,
+            "pw": self.password
         }
 
         self.kutisSession = aiohttp.ClientSession(headers=headers)
 
         try:
+            async with self.kutisSession.get(KUTIS_FORM_URL, allow_redirects=False) as formResponse:
+                if formResponse.status != 200:
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+
             async with self.kutisSession.post(KUTIS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 if loginResponse.status != 302:
-                    raise Exception("KUTIS Authentication Fail")
-                
-                loginRedirectUrl = loginResponse.headers.get('Location')
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+
+                loginRedirectUrl = loginResponse.headers.get("Location")
                 if not loginRedirectUrl:
-                    raise Exception("KUTIS Authentication Fail")
-            
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+
             async with self.kutisSession.get(loginRedirectUrl, allow_redirects=False) as ssoResponse:
                 if ssoResponse.status != 302:
-                    raise Exception("KUTIS Authentication Fail")
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+
+                ssoRedirectUrl = ssoResponse.headers.get("Location")
+                if not ssoRedirectUrl:
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+
+            async with self.kutisSession.get(ssoRedirectUrl, allow_redirects=True) as verifyResponse:
+                if verifyResponse.status != 200:
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+
+            async with self.kutisSession.get(KUTIS_MAIN_PAGE_URL, allow_redirects=True) as mainPageResponse:
+                if mainPageResponse.status != 200:
+                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
             return
-            
-        except Exception as e:
-            await self.kutisSession.close()
-            self.kutisSession = None
-            raise Exception(str(e))
+
+        except Exception:
+            raise
 
 
-    async def getTimetable(self):
+    async def getTimetable(self, close: bool=True) -> list:
         """
         Kutis에서 시간표를 스크래핑합니다.
 
@@ -81,13 +97,13 @@ class KutisExtractor:
                 : 존재하지 않으면 해결 필요 없음
         """
         try:
-            classes = []
-            days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-            period = 0
-
             content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
             tables = content.find_all('table', class_='list06')
             timetable = tables[1]
+
+            classes = []
+            days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+            period = 0
 
             rows = timetable.find_all('tr')
             for rowIndex in range(1, len(rows), 2):
@@ -108,8 +124,13 @@ class KutisExtractor:
                             'startAt': period,
                             'endAt': period + classTime - 1
                         })
+            
+            return classes
 
-        except Exception as e:
-            await self.kutisSession.close()
-            self.kutisSession = None
-            raise Exception(str(e))
+        except Exception:
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content)
+        
+        finally:
+            if close and self.kutisSession:
+                await self.kutisSession.close()
+                self.kutisSession = None
