@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from drf_spectacular.utils import extend_schema, inline_serializer
 
-from Scrap.extractor.extractor import Extractor
+from Scrap.extractor import Extractor
 
 from Scrap.serializer.attendance import _AttendanceSerializer
 

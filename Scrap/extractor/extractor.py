@@ -1,10 +1,8 @@
 import asyncio
 
-from Scrap.extractor.parts.kutis import KutisExtractor
-from Scrap.extractor.parts.lms import LmsExtractor
-from Scrap.extractor.parts.utils import Utils
+from Scrap.extractor.parts import KutisExtractor, LmsExtractor, Utils
 
-class Extractor(KutisExtractor, LmsExtractor, Utils):
+class Extractor(KutisExtractor, LmsExtractor):
     """
     LMS, KUTIS 스크래핑을 처리하는 클래스입니다.
     """
