@@ -1,5 +1,5 @@
-KUTIS_FORM_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/hs/wslogin/login.jsp"
 KUTIS_LOGIN_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/hs/wslogin/loginCheck.jsp"
+KUTIS_LOGIN_PAGE_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/indexWeb.jsp"
 KUTIS_MAIN_PAGE_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/main/mypage.jsp?flag=2"
 KUTIS_TIMETABLE_PAGE_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/hs/wssu3/wssu330s.jsp?m_menu=wsco1s05&s_menu=wssu330s"
 

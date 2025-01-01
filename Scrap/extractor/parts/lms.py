@@ -4,7 +4,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from Scrap.extractor.exception import ErrorType, ExtractorException
-from Scrap.extractor.parts import Utils
+from Scrap.extractor.parts.utils import Utils
 from Scrap.extractor.parts.constants import *
 
 class LmsExtractor:
@@ -17,15 +17,15 @@ class LmsExtractor:
 
     async def _lmsFetch(self, url: str) -> BeautifulSoup:
         """
-        GET 요청을 보내고, 응답을 BeautifulSoup로 변환하여 반환합니다.
+        GET 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
 
         인증 세션이 없다면 생성을 시도합니다.
 
         Parameters:
-            url (str): 요청 Url
+            url: 요청 Url
         
         Returns:
-            response (str): 응답 데이터
+            content: BeautifulSoup 객체
         """
         try:
             if self.lmsSession is None:
@@ -36,6 +36,7 @@ class LmsExtractor:
                 return BeautifulSoup(data, 'lxml')
             
         except Exception as e:
+            # 시스템 예외 처리
             raise ExtractorException(type=ErrorType.SCRAPE_ERROR) from e
 
  
@@ -57,6 +58,7 @@ class LmsExtractor:
         self.lmsSession = aiohttp.ClientSession(headers=headers)
 
         try:
+            # LMS 로그인 요청
             async with self.lmsSession.post(LMS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 if loginResponse.status != 303:
                     raise ExtractorException(type=ErrorType.LMS_ERROR)
@@ -75,8 +77,9 @@ class LmsExtractor:
                 
                 raise ExtractorException(type=ErrorType.LMS_ERROR)
 
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SYSTEM_ERROR) from e
 
 
     async def verifyAuthentication(self):
@@ -85,17 +88,20 @@ class LmsExtractor:
 
         Returns:
             verification: 인증 여부
+            message: 인증 메세지
         """
         try:
             await self._getLmsSession()
             return True, "인증에 성공했습니다."
         
         except ExtractorException as e:
+            # 인증 정보 미일치를 제외한 예외
             if e.type != ErrorType.AUTHENTICATION_FAIL:
                 e.logError()
             return False, e.message
         
         except Exception as e:
+            # 시스템 예외 처리
             error = ExtractorException(type=ErrorType.SYSTEM_ERROR, *e.args)
             error.logError()
             return False, error.message
@@ -109,6 +115,9 @@ class LmsExtractor:
     async def _getCourseList(self, close: bool=True) -> list:
         """
         강좌 목록을 스크래핑합니다.
+
+        Parameters:
+            close: 세션 종료 여부
 
         Returns:
             courseList: 강좌 목록
@@ -133,8 +142,9 @@ class LmsExtractor:
             ]
             return courseList
         
-        except Exception:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content)
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -148,6 +158,7 @@ class LmsExtractor:
 
         Parameters:
             courseCode: 강좌 코드
+            close: 세션 종료 여부
 
         Returns:
             courseActivityList: 강좌 주차별 활동 목록
@@ -162,8 +173,9 @@ class LmsExtractor:
 
             return courseActivityList
         
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -176,7 +188,7 @@ class LmsExtractor:
         해당 주차의 활동들을 스크래핑합니다.
 
         Parameters:
-            content: 주차별 BeautifulSoup
+            content: 주차별 BeautifulSoup 객체
         
         Returns:
             activityList: 주차별 활동 목록
@@ -243,8 +255,9 @@ class LmsExtractor:
             
             return activityList
         
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
     async def getCourseAssignment(self, assignmentCode: str, close: bool=True) -> dict:
@@ -285,8 +298,9 @@ class LmsExtractor:
 
             return assignmentData
         
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
     
         finally:
             if close and self.lmsSession:
@@ -334,8 +348,9 @@ class LmsExtractor:
 
             return noticeList
 
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -389,8 +404,9 @@ class LmsExtractor:
 
             return noticeData
 
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
     async def getLectureAttendance(self, courseCode: str, contain: bool=False, flat: bool=False, close: bool=True) -> dict:
@@ -443,8 +459,9 @@ class LmsExtractor:
             
             return {"courseCode": courseCode, "attendances": attendanceData} if contain else attendanceData
 
-        except Exception:
-            raise
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
