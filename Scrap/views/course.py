@@ -105,6 +105,6 @@ class CourseView(GenericAPIView):
                 )
             
             except ExtractorException as e:
-                ExtractorException.logError(e)
+                ExtractorException.logError(exception=e)
                 return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

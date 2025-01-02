@@ -67,6 +67,7 @@ class LmsExtractor:
 
                 if loginRedirectUrl == LMS_LOGIN_FAILURE_URL:
                     # 인증 정보가 잘못된 경우
+                    print("인증 실패")
                     raise ExtractorException(type=ErrorType.AUTHENTICATION_FAIL)
                 elif LMS_LOGIN_SUCCESS_URL in loginRedirectUrl:
                     # 로그인 상태 검증
@@ -77,39 +78,77 @@ class LmsExtractor:
                 
                 raise ExtractorException(type=ErrorType.LMS_ERROR)
 
+        except ExtractorException as e:
+            # 스크래핑 문제 예외 처리
+            raise
+
         except Exception as e:
             # 시스템 예외 처리
             raise ExtractorException(type=ErrorType.SYSTEM_ERROR) from e
 
 
-    async def verifyAuthentication(self):
+    async def verifyAuthentication(self, getUser: bool) -> tuple:
         """
-        학교 시스템에 로그인하여 인증 정보를 확인합니다.
+        학교 시스템에 로그인하여 인증 정보를 확인하고, 사용자 정보를 스크래핑합니다.
+
+        Parameters:
+            getUser: 사용자 정보 추출 여부
 
         Returns:
             verification: 인증 여부
+            userData: 사용자 정보
             message: 인증 메세지
         """
         try:
             await self._getLmsSession()
-            return True, "인증에 성공했습니다."
+
+            if getUser:
+                userData = await self._getUserData()
+                return True, userData, "인증에 성공했습니다."
+            return True, None, "인증에 성공했습니다."
         
         except ExtractorException as e:
             # 인증 정보 미일치를 제외한 예외
+            print("커스텀 예외")
             if e.type != ErrorType.AUTHENTICATION_FAIL:
-                e.logError()
-            return False, e.message
+                e.logError(exception=e)
+            return False, None, e.message
         
         except Exception as e:
             # 시스템 예외 처리
             error = ExtractorException(type=ErrorType.SYSTEM_ERROR, *e.args)
-            error.logError()
-            return False, error.message
+            error.logError(exception=e)
+            return False, None, error.message
         
         finally:
             if self.lmsSession:
                 await self.lmsSession.close()
                 self.lmsSession = None
+
+
+    async def _getUserData(self) -> dict:
+        """
+        사용자 정보를 스크래핑합니다.
+
+        Returns:
+            userData: 사용자 정보
+        """
+        try:
+            content = await self._lmsFetch(LMS_USER_PAGE_URL)
+            
+            userData = {}
+            userData['name'] = content.find('input', id='id_firstname').get('value')
+            userData['college'] = content.find('input', id='id_institution').get('value')
+            
+            major = content.find('input', id='id_department').get('value')
+            department, major = Utils.getDepartment(major=major)
+            userData['department'] = department
+            userData['major'] = major
+            return userData
+        
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
     async def _getCourseList(self, close: bool=True) -> list:

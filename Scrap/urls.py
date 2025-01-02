@@ -1,17 +1,11 @@
 from django.urls import path
 
-from Scrap.views.verify import VerificationView
-from Scrap.views.timetable import TimetableView
-from Scrap.views.course import CourseView
-from Scrap.views.activity import ActivityView
-from Scrap.views.notice import NoticeView
-from Scrap.views.attendance import AttendanceView
-from Scrap.views.assignment import AssignmentView
+from Scrap.views import *
 
 app_name = 'Scrap'
 
 urlpatterns = [
-    path("auth/", VerificationView.as_view(), name="verify"),
+    path("auth/", AuthenticationView.as_view(), name="auth"),
     path("timetable/", TimetableView.as_view(), name="timetable"),
     path('course/', CourseView.as_view(), name='course'),
     path('course/activity/', ActivityView.as_view(), name='activity'),

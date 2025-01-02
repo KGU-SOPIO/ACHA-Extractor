@@ -20,3 +20,26 @@ class AuthSerializer(serializers.Serializer):
             "blank": "비밀번호는 필수 항목입니다."
         }
     )
+
+
+
+class _AuthSerializer(serializers.Serializer):
+    authentication = AuthSerializer(
+        required = True,
+        error_messages = {
+            "required": "로그인 정보는 필수 항목입니다.",
+            "blank": "로그인 정보는 필수 항목입니다."
+        }
+    )
+
+    user = serializers.BooleanField(
+        label = "사용자 정보 추출 여부",
+        required = False,
+        default = False
+    )
+
+    def validate(self, attrs):
+        authentication_data = attrs["authentication"]
+        attrs["studentId"] = authentication_data["studentId"]
+        attrs["password"] = authentication_data["password"]
+        return attrs

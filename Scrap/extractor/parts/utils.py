@@ -3,7 +3,7 @@ import urllib.parse
 
 class Utils:
     @staticmethod
-    def getDepartment(major: str) -> str:
+    def getDepartment(major: str) -> tuple:
         """
         전공으로 학부를 판별합니다.
 
@@ -12,6 +12,7 @@ class Utils:
 
         Returns:
             department: 학부
+            major: 전공
         """
         departmentGroup = {
             "교직학부": {"교육학전공"},
@@ -36,11 +37,16 @@ class Utils:
             "기계시스템공학부": {"기계공학전공", "지능형로봇전공"}
         }
 
+        if major.endswith("부"):
+            return major, ""
+
         for department, majors in departmentGroup.items():
             if major in majors:
-                return department
-        return ""
-    
+                return department, major
+        
+        return "", major
+
+
     @staticmethod
     def extractCodeFromUrl(url: str, paramName: str) -> str:
         parsedUrl = urllib.parse.urlparse(url=url)
