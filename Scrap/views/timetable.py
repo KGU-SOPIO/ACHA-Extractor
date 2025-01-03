@@ -28,7 +28,7 @@ class TimetableView(GenericAPIView):
                             name="TimetableObject",
                             fields={
                                 "courseName": serializers.CharField(),
-                                "courseCode": serializers.CharField(),
+                                "courseIdentifier": serializers.CharField(),
                                 "professor": serializers.CharField(),
                                 "classroom": serializers.CharField(),
                                 "day": serializers.CharField(),

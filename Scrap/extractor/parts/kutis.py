@@ -125,10 +125,10 @@ class KutisExtractor:
                 for colIndex, col in enumerate(columns):
                     if col.name == 'th':
                         classTime = int(col.get('rowspan')) // 2
-                        courseName, courseCode, professor, classroom = col.get_text(separator="<br>", strip=True).split("<br>")
+                        courseName, courseIdentifier, professor, classroom = col.get_text(separator="<br>", strip=True).split("<br>")
                         classes.append({
                             'courseName': courseName,
-                            'courseCode': courseCode,
+                            'courseIdentifier': courseIdentifier,
                             'professor': professor,
                             'classroom': classroom,
                             'day': days[colIndex-1],

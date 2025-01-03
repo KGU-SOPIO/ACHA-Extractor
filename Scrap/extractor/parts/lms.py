@@ -174,7 +174,8 @@ class LmsExtractor:
                 {
                     "courseName": course.find('h3').text.strip().split('(')[0].strip(),
                     "courseLink": (courseLink := course.find('a', class_='course_link').get('href')),
-                    "courseCode": courseLink.split('=')[1].strip(),
+                    "courseIdentifier": course.find('h3').text.strip().split('_')[1].split(')')[0][-4:],
+                    "courseCode": Utils.extractCodeFromUrl(courseLink, "id"),
                     "professor": course.find('p', class_='prof').text.strip()
                 }
                 for course in courses
