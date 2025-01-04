@@ -61,6 +61,7 @@ class CourseView(GenericAPIView):
                                         child=inline_serializer(
                                             name="ActivityObject_",
                                             fields={
+                                                "week": serializers.IntegerField(),
                                                 "available": serializers.BooleanField(),
                                                 "activityName": serializers.CharField(),
                                                 "activityLink": serializers.URLField(required=False),
