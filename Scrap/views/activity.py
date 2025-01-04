@@ -27,6 +27,7 @@ class ActivityView(GenericAPIView):
                             child=inline_serializer(
                                 name="ActivityObject",
                                 fields={
+                                    "week": serializers.IntegerField(),
                                     "available": serializers.CharField(),
                                     "activityName": serializers.CharField(),
                                     "activityLink": serializers.CharField(),

@@ -208,7 +208,7 @@ class LmsExtractor:
             sections = content.find_all('li', id=re.compile(r'section-[1-9]\d*'))
 
             # 활동 목록 스크래핑 비동기 처리
-            tasks = [self._getActivites(content=section) for section in sections]
+            tasks = [self._getActivites(week=index, content=section) for index, section in enumerate(sections, start=1)]
             courseActivityList = await asyncio.gather(*tasks)
 
             return courseActivityList
@@ -223,7 +223,7 @@ class LmsExtractor:
                 self.lmsSession = None
 
 
-    async def _getActivites(self, content: BeautifulSoup) -> list:
+    async def _getActivites(self, week: int, content: BeautifulSoup) -> list:
         """
         해당 주차의 활동들을 스크래핑합니다.
 
@@ -242,6 +242,7 @@ class LmsExtractor:
             for activity in activities:
                 # 활성 상태
                 activityData = {
+                    'week': week,
                     'available': 'false' if activity.find('div', class_='availability') else 'true'
                 }
                 
