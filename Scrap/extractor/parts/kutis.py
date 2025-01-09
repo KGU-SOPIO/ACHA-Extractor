@@ -98,7 +98,7 @@ class KutisExtractor:
         """
         KUTIS에서 시간표를 스크래핑합니다.
 
-        ! rowspan으로 인한 비정확한 요일 수집 가능성 문제 해결 필요
+        ! rowspan으로 인한 비정확한 요일 수집 가능성, 문제 해결 필요
             -> 1 ~ 3교시(오전), 4 ~ 5교시, 6 ~ 7교시(오후) 시간대 외 수업 시간이 존재하는지 확인 필요
                 : 존재하지 않으면 해결 필요 없음
 
@@ -125,12 +125,12 @@ class KutisExtractor:
                 for colIndex, col in enumerate(columns):
                     if col.name == 'th':
                         classTime = int(col.get('rowspan')) // 2
-                        courseName, courseIdentifier, professor, classroom = col.get_text(separator="<br>", strip=True).split("<br>")
+                        courseName, courseIdentifier, professor, lectureRoom = col.get_text(separator="<br>", strip=True).split("<br>")
                         classes.append({
                             'courseName': courseName,
                             'courseIdentifier': courseIdentifier,
                             'professor': professor,
-                            'classroom': classroom,
+                            'lectureRoom': lectureRoom,
                             'day': days[colIndex-1],
                             'classTime': classTime,
                             'startAt': period,
@@ -139,9 +139,9 @@ class KutisExtractor:
             
             return classes
 
-        except Exception:
+        except Exception as e:
             # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content)
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
         
         finally:
             if close and self.kutisSession:

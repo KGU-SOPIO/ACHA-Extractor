@@ -78,7 +78,7 @@ class LmsExtractor:
                 
                 raise ExtractorException(type=ErrorType.LMS_ERROR)
 
-        except ExtractorException as e:
+        except ExtractorException:
             # 스크래핑 문제 예외 처리
             raise
 
@@ -181,6 +181,10 @@ class LmsExtractor:
                 for course in courses
             ]
             return courseList
+        
+        except ExtractorException:
+            # 강의 미존재 예외처리
+            raise
         
         except Exception as e:
             # 시스템 예외 처리
