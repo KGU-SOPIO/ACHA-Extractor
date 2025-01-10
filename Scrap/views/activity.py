@@ -59,7 +59,6 @@ class ActivityView(GenericAPIView):
             courseCode = serializer.validated_data.get("code")
 
             try:
-                raise
                 extractor = Extractor(studentId=studentId, password=password)
                 activities = asyncio.run(extractor.getCourseActivites(courseCode=courseCode))
 
