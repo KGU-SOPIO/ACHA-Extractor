@@ -8,6 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor import Extractor
+from Scrap.extractor.exception import ErrorType, ExtractorException
 
 from Scrap.serializer.notice import _NoticeSerializer
 
@@ -22,7 +23,7 @@ class NoticeView(GenericAPIView):
             status.HTTP_200_OK: inline_serializer(
                 name="NoticeResponse",
                 fields={
-                    "notices": serializers.ListField(
+                    "data": serializers.ListField(
                         child=inline_serializer(
                             name="NoticeObject",
                             fields={
@@ -36,8 +37,8 @@ class NoticeView(GenericAPIView):
                                     child=inline_serializer(
                                         name="FileObject",
                                         fields={
-                                            "fileName": serializers.CharField(),
-                                            "fileLink": serializers.URLField(),
+                                            "name": serializers.CharField(),
+                                            "link": serializers.URLField(),
                                         }
                                     )
                                 ),
@@ -63,11 +64,15 @@ class NoticeView(GenericAPIView):
 
                 return Response(
                     {
-                        "notices": notices
+                        "data": notices
                     },
                     status=status.HTTP_200_OK
                 )
             
+            except ExtractorException as e:
+                e.logError()
+                return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
+                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
                 return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

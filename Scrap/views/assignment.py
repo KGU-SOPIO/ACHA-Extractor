@@ -8,6 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor import Extractor
+from Scrap.extractor.exception import ErrorType, ExtractorException
 
 from Scrap.serializer.assignment import _AssignmentSerializer
 
@@ -22,7 +23,7 @@ class AssignmentView(GenericAPIView):
             status.HTTP_200_OK: inline_serializer(
                 name="AssignmentResponse",
                 fields={
-                    "assignment": inline_serializer(
+                    "data": inline_serializer(
                         name="AssignmentObject",
                         fields={
                             "gradingStatus": serializers.CharField(),
@@ -47,16 +48,21 @@ class AssignmentView(GenericAPIView):
             assignmentCode = serializer.validated_data.get("code")
 
             try:
+                raise
                 extractor = Extractor(studentId=studentId, password=password)
                 assignment = asyncio.run(extractor.getCourseAssignment(assignmentCode=assignmentCode))
 
                 return Response(
                     {
-                        "assignment": assignment
+                        "data": assignment
                     },
                     status=status.HTTP_200_OK
                 )
                 
+            except ExtractorException as e:
+                e.logError()
+                return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
+                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
                 return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

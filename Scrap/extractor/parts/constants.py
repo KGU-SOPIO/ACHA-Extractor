@@ -16,10 +16,7 @@ LMS_ASSIGNMENT_PAGE_URL = "https://lms.kyonggi.ac.kr/mod/assign/view.php?id={}"
 
 LMS_ACTIVITY_TYPES = {
     'ubfile': 'file',
-    'xncommons': 'video',
+    'xncommons': 'lecture',
     'assign': 'assignment',
-    'feedback': 'survey',
-    'ubboard': 'board',
-    'url': 'url',
-    'label': 'text'
+    'url': 'url'
 }

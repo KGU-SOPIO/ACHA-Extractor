@@ -8,6 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor import Extractor
+from Scrap.extractor.exception import ErrorType, ExtractorException
 
 from Scrap.serializer.auth import _AuthSerializer
 
@@ -59,6 +60,18 @@ class AuthenticationView(GenericAPIView):
                     status=status.HTTP_200_OK
                 )
             
+            except ExtractorException as e:
+                e.logError()
+                return Response(
+                    {
+                        "verification": False,
+                        "userData": None,
+                        "message": e.message
+                    },
+                    status=status.HTTP_200_OK
+                )
+            
             except Exception as e:
+                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
                 return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -25,16 +25,19 @@ class KutisExtractor:
             content: BeautifulSoup 객체
         """
         try:
+            # 세션 검증 및 생성
             if self.kutisSession is None:
                 await self._getKutisSession()
 
+            # 페이지 요청 및 변환 후 반환
             async with self.kutisSession.get(url) as response:
                 data = await response.text()
                 return BeautifulSoup(data, 'lxml')
         
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
 
 
     async def _getKutisSession(self):
@@ -52,6 +55,7 @@ class KutisExtractor:
             "pw": self.password
         }
 
+        # 세션 초기화
         self.kutisSession = aiohttp.ClientSession(headers=headers)
 
         try:
@@ -63,7 +67,7 @@ class KutisExtractor:
             # KUTIS 로그인 POST 요청
             async with self.kutisSession.post(KUTIS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 if loginResponse.status != 302:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(type=ErrorType.AUTHENTICATION_FAIL)
 
                 loginRedirectUrl = loginResponse.headers.get("Location")
                 if not loginRedirectUrl:
@@ -89,9 +93,10 @@ class KutisExtractor:
                     raise ExtractorException(type=ErrorType.KUTIS_ERROR)
             return
 
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR) from e
+            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
 
 
     async def getTimetable(self, close: bool=True) -> list:
@@ -139,9 +144,10 @@ class KutisExtractor:
             
             return classes
 
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
         
         finally:
             if close and self.kutisSession:

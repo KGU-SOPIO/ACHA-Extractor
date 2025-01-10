@@ -8,7 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor import Extractor
-from Scrap.extractor.exception import ExtractorException
+from Scrap.extractor.exception import ErrorType, ExtractorException
 
 from Scrap.serializer.auth import AuthSerializer
 
@@ -23,7 +23,7 @@ class TimetableView(GenericAPIView):
             status.HTTP_200_OK: inline_serializer(
                 name="TimetableResponse",
                 fields={
-                    "timetable": serializers.ListField(
+                    "data": serializers.ListField(
                         child=inline_serializer(
                             name="TimetableObject",
                             fields={
@@ -56,12 +56,15 @@ class TimetableView(GenericAPIView):
 
                 return Response(
                     {
-                        "timetable": timetable
+                        "data": timetable
                     },
                     status=status.HTTP_200_OK
                 )
             
             except ExtractorException as e:
-                ExtractorException.logError(exception=e)
+                e.logError()
                 return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
+                return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

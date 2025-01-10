@@ -8,6 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor import Extractor
+from Scrap.extractor.exception import ErrorType, ExtractorException
 
 from Scrap.serializer.activity import _ActivitySerializer
 
@@ -22,17 +23,16 @@ class ActivityView(GenericAPIView):
             status.HTTP_200_OK: inline_serializer(
                 name="ActivityResponse",
                 fields={
-                    "activities": serializers.ListField(
+                    "data": serializers.ListField(
                         child=serializers.ListField(
                             child=inline_serializer(
                                 name="ActivityObject",
                                 fields={
-                                    "week": serializers.IntegerField(),
                                     "available": serializers.CharField(),
-                                    "activityName": serializers.CharField(),
-                                    "activityLink": serializers.CharField(),
-                                    "activityCode": serializers.CharField(),
-                                    "activityType": serializers.CharField(),
+                                    "name": serializers.CharField(),
+                                    "link": serializers.CharField(),
+                                    "code": serializers.CharField(),
+                                    "type": serializers.CharField(),
                                     "lectureDeadline": serializers.CharField(required=False),
                                     "lectureTime": serializers.CharField(required=False),
                                     "gradingStatus": serializers.CharField(required=False),
@@ -59,16 +59,21 @@ class ActivityView(GenericAPIView):
             courseCode = serializer.validated_data.get("code")
 
             try:
+                raise
                 extractor = Extractor(studentId=studentId, password=password)
                 activities = asyncio.run(extractor.getCourseActivites(courseCode=courseCode))
 
                 return Response(
                     {
-                        "activities": activities
+                        "data": activities
                     },
                     status=status.HTTP_200_OK
                 )
             
+            except ExtractorException as e:
+                e.logError()
+                return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
+                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
                 return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

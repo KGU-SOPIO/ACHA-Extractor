@@ -1,11 +1,14 @@
 import urllib
 import urllib.parse
 
+from Scrap.extractor.exception import ErrorType, ExtractorException
+
 class Utils:
     @staticmethod
     def getDepartment(major: str) -> tuple:
         """
         전공으로 학부를 판별합니다.
+        ! KUTIS 스크래핑 적용 또는 지속적인 업데이트 필요
 
         Parameters:
             major: 전공
@@ -37,18 +40,24 @@ class Utils:
             "기계시스템공학부": {"기계공학전공", "지능형로봇전공"}
         }
 
-        if major.endswith("부"):
+        # 가전공 판별
+        if major.endswith("학부"):
             return major, ""
 
+        # 학부 판별 성공
         for department, majors in departmentGroup.items():
             if major in majors:
                 return department, major
         
+        # 학부 판별 실패
         return "", major
 
 
     @staticmethod
     def extractCodeFromUrl(url: str, paramName: str) -> str:
-        parsedUrl = urllib.parse.urlparse(url=url)
-        queryParams = urllib.parse.parse_qs(parsedUrl.query)
-        return queryParams.get(paramName, [None])[0]
+        try:
+            parsedUrl = urllib.parse.urlparse(url=url)
+            queryParams = urllib.parse.parse_qs(parsedUrl.query)
+            return queryParams.get(paramName)[0]
+        except Exception as e:
+            raise ExtractorException(type=ErrorType.EXTRACT_PARAMETER_ERROR, args=e.args) from e

@@ -22,24 +22,44 @@ class LmsExtractor:
         인증 세션이 없다면 생성을 시도합니다.
 
         Parameters:
-            url: 요청 Url
+            url: 요청 url
         
         Returns:
             content: BeautifulSoup 객체
         """
         try:
+            # 세션 검증 및 생성
             if self.lmsSession is None:
                 await self._getLmsSession()
             
+            # 페이지 요청 및 변환 후 반환
             async with self.lmsSession.get(url) as response:
                 data = await response.text()
                 return BeautifulSoup(data, 'lxml')
             
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
 
- 
+
+    async def _checkAccess(self, content: BeautifulSoup):
+        """
+        페이지 접근 여부를 검증합니다.
+
+        Parameters:
+            content: BeautifulSoup 객체
+        """
+        mainContainer = content.find('div', id='region-main')
+
+        # LMS 시스템 경고
+        alert = mainContainer.find('div', class_='alert')
+        # 접근 제한 메세지
+        notify = mainContainer.find('div', class_='generalbox')
+        if alert or notify :
+            raise ExtractorException(type=ErrorType.INVALID_ACCESS)
+
+
     async def _getLmsSession(self):
         """
         lmsSession 인스턴스 변수에 LMS 인증 세션을 할당합니다.
@@ -55,23 +75,26 @@ class LmsExtractor:
             "password": self.password
         }
 
+        # 세션 초기화
         self.lmsSession = aiohttp.ClientSession(headers=headers)
 
         try:
             # LMS 로그인 요청
             async with self.lmsSession.post(LMS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
+                # 정상 응답 검증
                 if loginResponse.status != 303:
                     raise ExtractorException(type=ErrorType.LMS_ERROR)
 
+                # Redirect 링크 추출
                 loginRedirectUrl = loginResponse.headers.get("Location", "")
 
                 if loginRedirectUrl == LMS_LOGIN_FAILURE_URL:
                     # 인증 정보가 잘못된 경우
-                    print("인증 실패")
                     raise ExtractorException(type=ErrorType.AUTHENTICATION_FAIL)
                 elif LMS_LOGIN_SUCCESS_URL in loginRedirectUrl:
                     # 로그인 상태 검증
                     async with self.lmsSession.get(LMS_MAIN_PAGE_URL, allow_redirects=False) as verifyResponse:
+                        # 비정상 응답 검증
                         if verifyResponse.status == 303:
                             raise ExtractorException(type=ErrorType.LMS_ERROR)
                     return
@@ -79,12 +102,9 @@ class LmsExtractor:
                 raise ExtractorException(type=ErrorType.LMS_ERROR)
 
         except ExtractorException:
-            # 스크래핑 문제 예외 처리
             raise
-
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR) from e
+            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
 
 
     async def verifyAuthentication(self, getUser: bool) -> tuple:
@@ -100,25 +120,19 @@ class LmsExtractor:
             message: 인증 메세지
         """
         try:
+            # 인증 세션 생성
             await self._getLmsSession()
 
+            # 사용자 정보 추출
             if getUser:
                 userData = await self._getUserData()
                 return True, userData, "인증에 성공했습니다."
             return True, None, "인증에 성공했습니다."
         
-        except ExtractorException as e:
-            # 인증 정보 미일치를 제외한 예외
-            print("커스텀 예외")
-            if e.type != ErrorType.AUTHENTICATION_FAIL:
-                e.logError(exception=e)
-            return False, None, e.message
-        
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            error = ExtractorException(type=ErrorType.SYSTEM_ERROR, *e.args)
-            error.logError(exception=e)
-            return False, None, error.message
+            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
         
         finally:
             if self.lmsSession:
@@ -146,8 +160,9 @@ class LmsExtractor:
             userData['major'] = major
             return userData
         
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
             raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
@@ -162,20 +177,23 @@ class LmsExtractor:
             courseList: 강좌 목록
         """
         try:
+            # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_MAIN_PAGE_URL)
+            await self._checkAccess(content=content)
+
             courseContainer = content.find('div', class_='course_lists')
             courses = courseContainer.find_all('li', class_='course_label_re')
             
             # 강좌 목록 확인
             if not courses:
-                raise ExtractorException(type=ErrorType.SCRAPE_ERROR, message="강좌가 존재하지 않습니다.", content=content)
+                raise ExtractorException(type=ErrorType.COURSE_NOT_EXIST, content=content)
 
             courseList = [
                 {
-                    "courseName": course.find('h3').text.strip().split('(')[0].strip(),
-                    "courseLink": (courseLink := course.find('a', class_='course_link').get('href')),
-                    "courseIdentifier": course.find('h3').text.strip().split('_')[1].split(')')[0][-4:],
-                    "courseCode": Utils.extractCodeFromUrl(courseLink, "id"),
+                    "name": course.find('h3').text.strip().split('(')[0].strip(),
+                    "link": (courseLink := course.find('a', class_='course_link').get('href')),
+                    "identifier": course.find('h3').text.strip().split('_')[1].split(')')[0][-4:],
+                    "code": Utils.extractCodeFromUrl(courseLink, "id"),
                     "professor": course.find('p', class_='prof').text.strip()
                 }
                 for course in courses
@@ -183,12 +201,9 @@ class LmsExtractor:
             return courseList
         
         except ExtractorException:
-            # 강의 미존재 예외처리
             raise
-        
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
 
         finally:
             if close and self.lmsSession:
@@ -208,7 +223,10 @@ class LmsExtractor:
             courseActivityList: 강좌 주차별 활동 목록
         """
         try:
+            # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_COURSE_PAGE_URL.format(courseCode))
+            await self._checkAccess(content=content)
+            
             sections = content.find_all('li', id=re.compile(r'section-[1-9]\d*'))
 
             # 활동 목록 스크래핑 비동기 처리
@@ -217,9 +235,10 @@ class LmsExtractor:
 
             return courseActivityList
         
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
 
         finally:
             if close and self.lmsSession:
@@ -232,7 +251,7 @@ class LmsExtractor:
         해당 주차의 활동들을 스크래핑합니다.
 
         Parameters:
-            content: 주차별 BeautifulSoup 객체
+            content: BeautifulSoup 객체
         
         Returns:
             activityList: 주차별 활동 목록
@@ -246,7 +265,8 @@ class LmsExtractor:
             for activity in activities:
                 # 활성 상태
                 activityData = {
-                    'week': week,
+                    # 활동에 주차 정보 추가: 필요시 재사용
+                    # 'week': week,
                     'available': 'false' if activity.find('div', class_='availability') else 'true'
                 }
                 
@@ -257,32 +277,31 @@ class LmsExtractor:
                     childElement = titleElement.find('span', class_='accesshide')
                     if childElement:
                         childElement.extract()
-                    activityData['activityName'] = titleElement.text.strip()
+                    activityData['name'] = titleElement.text.strip()
 
-                # 코드 스크래핑
+                # 활동 링크 및 코드 스크래핑
                 linkElement = activity.find('a')
                 if linkElement:
                     activityLink = linkElement.get('href')
-                    activityData['activityLink'] = activityLink
-                    activityData['activityCode'] = Utils.extractCodeFromUrl(url=activityLink, paramName="id")
+                    activityData['link'] = activityLink
+                    activityData['code'] = Utils.extractCodeFromUrl(url=activityLink, paramName="id")
 
                 # 유형 스크래핑
                 classList = activity.get('class', [])
                 if len(classList) > 1:
-                    activityType = LMS_ACTIVITY_TYPES.get(classList[1], classList[1])
-
-                    # text 유형(텍스트) 무시
-                    if activityType == 'text':
+                    activityType = LMS_ACTIVITY_TYPES.get(classList[1])
+                    if not activityType:
                         continue
 
-                    activityData['activityType'] = activityType
+                    # 과제 유형 추가
+                    activityData['type'] = activityType
 
                     # 과제 유형 비동기 작업 추가
                     if activityType == 'assignment' and activityData['available'] == 'true':
-                        tasks.append((activityData['activityCode'], activityData))
+                        tasks.append((activityData['code'], activityData))
                     
-                    # Video 유형 추가 스크래핑
-                    if activityType == 'video':
+                    # 강의 유형 추가 스크래핑
+                    if activityType == 'lecture':
                         deadlineElement = activity.find('span', class_='text-ubstrap')
                         videoTimeElement = activity.find('span', class_='text-info')
                         if deadlineElement and videoTimeElement:
@@ -300,9 +319,10 @@ class LmsExtractor:
             
             return activityList
         
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
 
 
     async def getCourseAssignment(self, assignmentCode: str, close: bool=True) -> dict:
@@ -317,7 +337,10 @@ class LmsExtractor:
             assignmentData: 과제 정보
         """
         try:
+            # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_ASSIGNMENT_PAGE_URL.format(assignmentCode))
+            await self._checkAccess(content=content)
+            
             assignmentContainer = content.find('div', id='region-main')
 
             # 과제 설명 스크래핑
@@ -343,9 +366,10 @@ class LmsExtractor:
 
             return assignmentData
         
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
     
         finally:
             if close and self.lmsSession:
@@ -365,7 +389,10 @@ class LmsExtractor:
             noticeList: 전체 공지사항 정보
         """
         try:
+            # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_BOARD_PAGE_URL.format(boardCode))
+            await self._checkAccess(content=content)
+
             container = content.find('tbody')
 
             # 공지사항 목록 확인
@@ -393,9 +420,10 @@ class LmsExtractor:
 
             return noticeList
 
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
 
         finally:
             if close and self.lmsSession:
@@ -414,7 +442,9 @@ class LmsExtractor:
             noticeData: 공지사항 정보
         """
         try:
+            # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(link)
+            await self._checkAccess(content=content)
 
             # 공지사항 객체 생성
             noticeData = {
@@ -426,8 +456,8 @@ class LmsExtractor:
             if fileContainer:
                 noticeData['files'] = [
                     {
-                        'fileName': file.find('a').text.strip(),
-                        'fileLink': file.find('a').get('href')
+                        'name': file.find('a').text.strip(),
+                        'link': file.find('a').get('href')
                     }
                     for file in fileContainer.find_all('li')
                 ]
@@ -449,9 +479,10 @@ class LmsExtractor:
 
             return noticeData
 
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
 
 
     async def getLectureAttendance(self, courseCode: str, contain: bool=False, flat: bool=False, close: bool=True) -> dict:
@@ -471,7 +502,10 @@ class LmsExtractor:
             return cell.text.strip() == "O"
 
         try:
+            # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_ATTENDANCE_PAGE_URL.format(courseCode))
+            await self._checkAccess(content=content)
+
             tableContainer = content.find('table', class_='user_progress_table')
             table = tableContainer.select('tbody tr')
 
@@ -485,28 +519,29 @@ class LmsExtractor:
                 if title:
                     if flat:
                         attendanceData.append({
-                            'title': title,
+                            'name': title,
                             'attendance': attendance
                         })
                     else:
                         if cells[0].text.strip().isdigit():
                             attendanceData.append([{
-                                'title': title,
+                                'name': title,
                                 'attendance': attendance
                             }])
                         else:
                             attendanceData[-1].append({
-                                'title': title,
+                                'name': title,
                                 'attendance': attendance
                             })
                 elif not flat and cells[0].text.strip().isdigit():
                     attendanceData.append([])
             
             return {"courseCode": courseCode, "attendances": attendanceData} if contain else attendanceData
-
+        
+        except ExtractorException:
+            raise
         except Exception as e:
-            # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
 
         finally:
             if close and self.lmsSession:

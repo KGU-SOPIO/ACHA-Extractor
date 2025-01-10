@@ -8,7 +8,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer
 
 from Scrap.extractor import Extractor
-from Scrap.extractor.exception import ExtractorException
+from Scrap.extractor.exception import ErrorType, ExtractorException
 
 from Scrap.serializer.course import _CourseSerializer
 
@@ -23,15 +23,16 @@ class CourseView(GenericAPIView):
             status.HTTP_200_OK: inline_serializer(
                 name="CourseResponse",
                 fields={
-                    "courses": serializers.ListField(
+                    "data": serializers.ListField(
                         child=inline_serializer(
                             name="CourseObject",
                             fields={
-                                "courseName": serializers.CharField(),
-                                "courseLink": serializers.URLField(),
-                                "courseIdentifier": serializers.CharField(),
-                                "courseCode": serializers.CharField(),
+                                "name": serializers.CharField(),
+                                "link": serializers.URLField(),
+                                "identifier": serializers.CharField(),
+                                "code": serializers.CharField(),
                                 "professor": serializers.CharField(),
+                                "noticeCode": serializers.CharField(),
                                 "notices": serializers.ListField(
                                     required=False,
                                     child=inline_serializer(
@@ -47,8 +48,8 @@ class CourseView(GenericAPIView):
                                                 child=inline_serializer(
                                                     name="FileObject_",
                                                     fields={
-                                                        "fileName": serializers.CharField(),
-                                                        "fileLink": serializers.URLField(),
+                                                        "name": serializers.CharField(),
+                                                        "link": serializers.URLField(),
                                                     }
                                                 )
                                             ),
@@ -61,12 +62,11 @@ class CourseView(GenericAPIView):
                                         child=inline_serializer(
                                             name="ActivityObject_",
                                             fields={
-                                                "week": serializers.IntegerField(),
                                                 "available": serializers.BooleanField(),
-                                                "activityName": serializers.CharField(),
-                                                "activityLink": serializers.URLField(required=False),
-                                                "activityCode": serializers.CharField(),
-                                                "activityType": serializers.CharField(),
+                                                "name": serializers.CharField(),
+                                                "link": serializers.URLField(required=False),
+                                                "code": serializers.CharField(),
+                                                "type": serializers.CharField(),
                                                 "lectureDeadline": serializers.CharField(required=False),
                                                 "lectureTime": serializers.CharField(required=False),
                                                 "attendance": serializers.BooleanField(required=False),
@@ -101,12 +101,15 @@ class CourseView(GenericAPIView):
 
                 return Response(
                     {
-                        "courses": courses
+                        "data": courses
                     },
                     status=status.HTTP_200_OK
                 )
             
             except ExtractorException as e:
-                ExtractorException.logError(exception=e)
+                e.logError()
                 return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
+                return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
