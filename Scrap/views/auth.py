@@ -3,39 +3,25 @@ import asyncio
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema
 
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.auth import _AuthSerializer
+from Scrap.serializer.auth import AuthSerializer
+from Scrap.serializer.auth_response import AuthResponseSerializer
 
 class AuthenticationView(GenericAPIView):
-    serializer_class = _AuthSerializer
+    serializer_class = AuthSerializer
 
     @extend_schema(
+        tags=["인증 API"],
         summary="인증 정보 검증 및 학생 정보 추출",
         description="학교 시스템에 로그인하여 인증 정보를 검증하고, 학생 정보를 추출합니다.",
-        request=_AuthSerializer,
+        request=AuthSerializer,
         responses={
-            status.HTTP_200_OK: inline_serializer(
-                name="VerificationResponse",
-                fields={
-                    "verification": serializers.BooleanField(),
-                    "userData": inline_serializer(
-                        name="UserResponse",
-                        fields={
-                            "name": serializers.CharField(),
-                            "college": serializers.CharField(),
-                            "department": serializers.CharField(),
-                            "major": serializers.CharField(),
-                        }
-                    ),
-                    "message": serializers.CharField()
-                }
-            )
+            status.HTTP_200_OK: AuthResponseSerializer
         }
     )
 

@@ -3,50 +3,25 @@ import asyncio
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema
 
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.activity import _ActivitySerializer
+from Scrap.serializer.activity import ActivitySerializer
+from Scrap.serializer.activity_response import ActivityResponseSerializer
 
 class ActivityView(GenericAPIView):
-    serializer_class = _ActivitySerializer
+    serializer_class = ActivitySerializer
 
     @extend_schema(
+        tags=["강좌 API"],
         summary="강좌 활동 추출",
         description="강좌의 활동 정보를 추출합니다.",
-        request=_ActivitySerializer,
+        request=ActivitySerializer,
         responses={
-            status.HTTP_200_OK: inline_serializer(
-                name="ActivityResponse",
-                fields={
-                    "data": serializers.ListField(
-                        child=serializers.ListField(
-                            child=inline_serializer(
-                                name="ActivityObject",
-                                fields={
-                                    "available": serializers.CharField(),
-                                    "name": serializers.CharField(),
-                                    "link": serializers.CharField(),
-                                    "code": serializers.CharField(),
-                                    "type": serializers.CharField(),
-                                    "lectureDeadline": serializers.CharField(required=False),
-                                    "lectureTime": serializers.CharField(required=False),
-                                    "gradingStatus": serializers.CharField(required=False),
-                                    "deadline": serializers.CharField(required=False),
-                                    "timeLeft": serializers.CharField(required=False),
-                                    "lastModified": serializers.CharField(required=False),
-                                    "description": serializers.CharField(required=False),
-                                    "submitStatus": serializers.CharField(required=False),
-                                }
-                            )
-                        )
-                    )
-                }
-            )
+            status.HTTP_200_OK: ActivityResponseSerializer
         }
     )
 

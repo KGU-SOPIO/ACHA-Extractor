@@ -3,50 +3,25 @@ import asyncio
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema
 
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.notice import _NoticeSerializer
+from Scrap.serializer.notice import NoticeSerializer
+from Scrap.serializer.notice_response import NoticeResponseSerializer
 
 class NoticeView(GenericAPIView):
-    serializer_class = _NoticeSerializer
+    serializer_class = NoticeSerializer
 
     @extend_schema(
+        tags=["강좌 API"],
         summary="강좌 공지사항 추출",
         description="강좌의 모든 공지사항을 추출합니다.",
-        request=_NoticeSerializer,
+        request=NoticeSerializer,
         responses={
-            status.HTTP_200_OK: inline_serializer(
-                name="NoticeResponse",
-                fields={
-                    "data": serializers.ListField(
-                        child=inline_serializer(
-                            name="NoticeObject",
-                            fields={
-                                "link": serializers.URLField(),
-                                "content": serializers.CharField(),
-                                "index": serializers.CharField(),
-                                "title": serializers.CharField(),
-                                "date": serializers.DateField(),
-                                "files": serializers.ListField(
-                                    required=False,
-                                    child=inline_serializer(
-                                        name="FileObject",
-                                        fields={
-                                            "name": serializers.CharField(),
-                                            "link": serializers.URLField(),
-                                        }
-                                    )
-                                ),
-                            }
-                        )
-                    )
-                }
-            ),
+            status.HTTP_200_OK: NoticeResponseSerializer
         }
     )
 

@@ -11,6 +11,7 @@ class ErrorType(Enum):
     AUTHENTICATION_FAIL = ("인증 실패", "학번 또는 비밀번호를 잘못 입력했습니다.")
     INVALID_ACCESS = ("잘못된 접근", "강좌에 접근할 수 없습니다.")
     COURSE_NOT_EXIST = ("강좌 미존재", "강좌가 존재하지 않습니다.")
+    TIMETABLE_NOT_EXIST = ("시간표 미존재", "시간표가 존재하지 않습니다.")
 
     def __init__(self, title: str, message: str):
         self.title = title

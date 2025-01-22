@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-class AuthSerializer(serializers.Serializer):
+class VerificationSerializer(serializers.Serializer):
     studentId = serializers.CharField(
         label = "학번",
         required = True,
@@ -21,10 +21,8 @@ class AuthSerializer(serializers.Serializer):
         }
     )
 
-
-
-class _AuthSerializer(serializers.Serializer):
-    authentication = AuthSerializer(
+class AuthSerializer(serializers.Serializer):
+    authentication = VerificationSerializer(
         required = True,
         error_messages = {
             "required": "로그인 정보는 필수 항목입니다.",

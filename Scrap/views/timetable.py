@@ -3,43 +3,25 @@ import asyncio
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema
 
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.auth import AuthSerializer
+from Scrap.serializer.auth import VerificationSerializer
+from Scrap.serializer.timetable_response import TimetableResponseSerializer
 
 class TimetableView(GenericAPIView):
-    serializer_class = AuthSerializer
+    serializer_class = VerificationSerializer
 
     @extend_schema(
+        tags=["시간표 API"],
         summary="시간표 추출",
         description="시간표 정보를 추출합니다.",
-        request=AuthSerializer,
+        request=VerificationSerializer,
         responses={
-            status.HTTP_200_OK: inline_serializer(
-                name="TimetableResponse",
-                fields={
-                    "data": serializers.ListField(
-                        child=inline_serializer(
-                            name="TimetableObject",
-                            fields={
-                                "courseName": serializers.CharField(),
-                                "courseIdentifier": serializers.CharField(),
-                                "professor": serializers.CharField(),
-                                "lectureRoom": serializers.CharField(),
-                                "day": serializers.CharField(),
-                                "classTime": serializers.IntegerField(),
-                                "startAt": serializers.IntegerField(),
-                                "endAt": serializers.IntegerField()
-                            }
-                        )
-                    )
-                }
-            )
+            status.HTTP_200_OK: TimetableResponseSerializer
         }
     )
 
@@ -62,6 +44,9 @@ class TimetableView(GenericAPIView):
                 )
             
             except ExtractorException as e:
+                if e.type == ErrorType.TIMETABLE_NOT_EXIST:
+                    return Response({"message": e.message}, status=status.HTTP_404_NOT_FOUND)
+                
                 e.logError()
                 return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:

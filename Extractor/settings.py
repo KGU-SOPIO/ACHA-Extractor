@@ -53,7 +53,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'SOPIO Extractor API',
+    'TITLE': 'SOPIO Extractor API Swagger',
     'DESCRIPTION': '널 위해서라면 뭐든지 긁어올 수 있어',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
@@ -176,8 +176,9 @@ LOGGING = {
         },
         'warning': {
             'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'Extractor.handlers.DiscordWebhookHandler',
-            'webhookUrl': env('WARNING_WEBHOOKURL') if env('DEBUG') == 'True' else env('DEBUG_WEBHOOKURL'),
+            'webhookUrl': env('WARNING_WEBHOOKURL'),
             'formatter': 'verbose'
         }
     },

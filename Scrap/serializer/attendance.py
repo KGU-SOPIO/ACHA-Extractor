@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from Scrap.serializer.auth import AuthSerializer
+from Scrap.serializer.auth import VerificationSerializer
 
-class _AttendanceSerializer(serializers.Serializer):
-    authentication = AuthSerializer(
+class AttendanceSerializer(serializers.Serializer):
+    authentication = VerificationSerializer(
         required = True,
         error_messages = {
             "required": "로그인 정보는 필수 항목입니다.",

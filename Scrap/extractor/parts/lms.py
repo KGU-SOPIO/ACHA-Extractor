@@ -55,7 +55,7 @@ class LmsExtractor:
         # LMS 시스템 경고
         alert = mainContainer.find('div', class_='alert')
         # 접근 제한 메세지
-        notify = mainContainer.find('div', class_='generalbox')
+        notify = mainContainer.find('div', class_='panel-heading')
         if alert or notify :
             raise ExtractorException(type=ErrorType.INVALID_ACCESS)
 
@@ -186,7 +186,7 @@ class LmsExtractor:
             
             # 강좌 목록 확인
             if not courses:
-                raise ExtractorException(type=ErrorType.COURSE_NOT_EXIST, content=content)
+                raise ExtractorException(type=ErrorType.COURSE_NOT_EXIST)
 
             courseList = [
                 {
@@ -265,9 +265,9 @@ class LmsExtractor:
             for activity in activities:
                 # 활성 상태
                 activityData = {
-                    # 활동에 주차 정보 추가: 필요시 재사용
+                    # 활동에 주차 정보 추가: 필요시 사용
                     # 'week': week,
-                    'available': 'false' if activity.find('div', class_='availability') else 'true'
+                    'available': False if activity.find('div', class_='availability') else True
                 }
                 
                 # 제목 스크래핑
@@ -416,6 +416,7 @@ class LmsExtractor:
             for index, notice in enumerate(noticeList):
                 notice["index"] = notices[index].find_all('td')[0].text.strip() or "중요"
                 notice["title"] = notices[index].find('a').text.strip()
+                notice["professor"] = notices[index].find_all('td')[2].text.strip()
                 notice["date"] = notices[index].find_all('td')[3].text.strip()
 
             return noticeList

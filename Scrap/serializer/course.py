@@ -1,14 +1,19 @@
 from rest_framework import serializers
 
-from Scrap.serializer.auth import AuthSerializer
+from Scrap.serializer.auth import VerificationSerializer
 
-class _CourseSerializer(serializers.Serializer):
-    authentication = AuthSerializer(
+class CourseSerializer(serializers.Serializer):
+    authentication = VerificationSerializer(
         required = True,
         error_messages = {
             "required": "로그인 정보는 필수 항목입니다.",
             "blank": "로그인 정보는 필수 항목입니다."
         }
+    )
+
+    extract = serializers.BooleanField(
+        required = False,
+        default = True
     )
 
     def validate(self, attrs):

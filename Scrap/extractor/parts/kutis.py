@@ -117,6 +117,9 @@ class KutisExtractor:
             content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
             tables = content.find_all('table', class_='list06')
             timetable = tables[1]
+            
+            if timetable.find('p', class_='caution'):
+                raise ExtractorException(type=ErrorType.TIMETABLE_NOT_EXIST)
 
             classes = []
             days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일']

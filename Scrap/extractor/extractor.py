@@ -12,10 +12,10 @@ class Extractor(KutisExtractor, LmsExtractor):
         LmsExtractor.__init__(self, studentId=studentId, password=password)
 
 
-    async def getCourses(self, detail: bool=True) -> list:
+    async def getCourses(self, extract: bool) -> list:
         try:
             courseList = await self._getCourseList(close=False)
-            if detail:
+            if extract:
                 tasks = [self._getCourseData(course) for course in courseList]
                 courseList = await asyncio.gather(*tasks)
             return courseList
