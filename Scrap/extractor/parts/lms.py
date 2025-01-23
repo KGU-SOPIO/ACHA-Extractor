@@ -2,6 +2,7 @@ import re
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
+import traceback
 
 from Scrap.extractor.exception import ErrorType, ExtractorException
 from Scrap.extractor.parts.utils import Utils
@@ -466,15 +467,16 @@ class LmsExtractor:
             # 공지사항 내용 스크래핑
             contentList = []
             container = content.find('div', class_='text_to_html')
-            for element in container.children:
-                if element.name is None:
-                    contentList.append(element.strip())
-                elif element.name == 'p':
-                    contentList.append(element.get_text(strip=True))
-                elif element.name is not None:
-                    allowedAttrs = {'src', 'href'}
-                    element.attrs = {key: value for key, value in element.attrs.items() if key in allowedAttrs}
-                    contentList.append(str(element))
+
+            # 줄바꿈 br 태그 변경
+            for lineBreak in container.find_all('br'):
+                lineBreak.replace_with('\n')
+
+            # 텍스트 추출
+            for element in container.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'], recursive=True):
+                text = element.get_text()
+                if text:
+                    contentList.append(text)
 
             noticeData['content'] = '\n'.join(contentList)
 
