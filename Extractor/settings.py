@@ -175,10 +175,10 @@ LOGGING = {
             'formatter': 'verbose'
         },
         'warning': {
-            'level': 'ERROR',
+            'level': 'WARNING',
             'filters': ['require_debug_false'],
-            'class': 'Extractor.handlers.DiscordWebhookHandler',
-            'webhookUrl': env('WARNING_WEBHOOKURL'),
+            'class': 'logging.FileHandler',
+            'filename': '/home/ubuntu/log/extractor/error.log',
             'formatter': 'verbose'
         }
     },
@@ -189,7 +189,7 @@ LOGGING = {
             'propagate': False
         },
         'watchmen': {
-            'handlers': ['warning'],
+            'handlers': ['loki'],
             'level': 'WARNING',
             'propagate': False
         }
