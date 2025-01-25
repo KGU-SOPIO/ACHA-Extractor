@@ -189,7 +189,7 @@ LOGGING = {
             'propagate': False
         },
         'watchmen': {
-            'handlers': ['loki'],
+            'handlers': ['warning'],
             'level': 'WARNING',
             'propagate': False
         }
