@@ -44,10 +44,10 @@ class TimetableView(GenericAPIView):
                 )
             
             except ExtractorException as e:
+                e.logError()
+
                 if e.type == ErrorType.TIMETABLE_NOT_EXIST:
                     return Response({"message": e.message}, status=status.HTTP_404_NOT_FOUND)
-                
-                e.logError()
                 return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
                 ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()

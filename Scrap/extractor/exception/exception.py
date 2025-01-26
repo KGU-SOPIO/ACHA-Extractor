@@ -25,11 +25,19 @@ class ExtractorException(Exception):
         super().__init__(*args)
 
     def logError(self):
-        if self.type in (ErrorType.AUTHENTICATION_FAIL, ErrorType.INVALID_ACCESS):
+        if self.type in (ErrorType.AUTHENTICATION_FAIL, ErrorType.INVALID_ACCESS, ErrorType.COURSE_NOT_EXIST, ErrorType.TIMETABLE_NOT_EXIST):
             return
         logger = logging.getLogger("watchmen")
-        logger.error(f"{self.message}")
+        logger.error(
+            f"{self.message}",
+            extra={
+                "type": self.type.title,
+                "content": self.content.prettify() if self.content is not None else None
+            }
+        )
 
     def logWarning(self):
+        if self.type in (ErrorType.AUTHENTICATION_FAIL, ErrorType.INVALID_ACCESS, ErrorType.COURSE_NOT_EXIST, ErrorType.TIMETABLE_NOT_EXIST):
+            return
         logger = logging.getLogger("watchmen")
         logger.warning(f"{self.message}")

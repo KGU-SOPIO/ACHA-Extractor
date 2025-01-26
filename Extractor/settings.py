@@ -156,9 +156,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '>>> [ {levelname} ] {asctime}\n[ {module} ] {message}',
-            'datefmt': "%Y-%m-%d %H시 %M분 %S초",
-            'style': '{'
+            'format': '[ {module} ] {message}',
+            'style': "{"
         }
     },
     'filters': {
@@ -167,29 +166,19 @@ LOGGING = {
         }
     },
     'handlers': {
-        'info': {
-            'level': 'INFO',
-            'filters': ['require_debug_false'],
-            'class': 'Extractor.handlers.DiscordWebhookHandler',
-            'webhookUrl': env('INFO_WEBHOOKURL'),
-            'formatter': 'verbose'
-        },
-        'warning': {
+        'loki': {
             'level': 'WARNING',
+            'formatter': 'verbose',
             'filters': ['require_debug_false'],
-            'class': 'logging.FileHandler',
-            'filename': '/home/ubuntu/log/extractor/error.log',
-            'formatter': 'verbose'
+            'class': 'Extractor.handlers.LokiHandler',
+            'grafanaUrl': env('GRAFANAURL'),
+            'grafanaUserId': env('GRAFANAUSERID'),
+            'grafanaToken': env('GRAFANATOKEN')
         }
     },
     'loggers': {
-        'analyst': {
-            'handler': ['info'],
-            'level': 'INFO',
-            'propagate': False
-        },
         'watchmen': {
-            'handlers': ['warning'],
+            'handlers': ['loki'],
             'level': 'WARNING',
             'propagate': False
         }
