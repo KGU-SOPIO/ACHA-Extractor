@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 class ActivityItemSerializer(serializers.Serializer):
     available = serializers.BooleanField()
-    name = serializers.CharField()
+    title = serializers.CharField()
     link = serializers.CharField()
     code = serializers.CharField()
     type = serializers.CharField()
@@ -14,6 +14,7 @@ class ActivityItemSerializer(serializers.Serializer):
     lastModified = serializers.CharField()
     description = serializers.CharField()
     submitStatus = serializers.CharField()
+    attendance = serializers.BooleanField()
 
 class ActivityResponseSerializer(serializers.Serializer):
     data = serializers.ListField(

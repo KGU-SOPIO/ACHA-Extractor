@@ -32,11 +32,13 @@ class CourseView(GenericAPIView):
         if serializer.is_valid():
             studentId = serializer.validated_data.get("studentId")
             password = serializer.validated_data.get("password")
+            year = serializer.validated_data.get("year")
+            semester = serializer.validated_data.get("semester")
             extract = serializer.validated_data.get("extract")
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
-                courses = asyncio.run(extractor.getCourses(extract=extract))
+                courses = asyncio.run(extractor.getCourses(year=year, semester=semester, extract=extract))
 
                 return Response(
                     {

@@ -4,7 +4,7 @@ from Scrap.serializer.activity_response import ActivityItemSerializer
 from Scrap.serializer.notice_response import NoticeItemSerializer
 
 class CourseItemSerializer(serializers.Serializer):
-    name = serializers.CharField()
+    title = serializers.CharField()
     link = serializers.CharField()
     identifier = serializers.CharField()
     code = serializers.CharField()

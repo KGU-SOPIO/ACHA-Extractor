@@ -9,6 +9,7 @@ LMS_LOGIN_FAILURE_URL = "https://lms.kyonggi.ac.kr/login.php?errorcode=3"
 
 LMS_MAIN_PAGE_URL = "https://lms.kyonggi.ac.kr/"
 LMS_USER_PAGE_URL = "https://lms.kyonggi.ac.kr/user/user_edit.php"
+LMS_PAST_COURSE_PAGE_URL = "https://lms.kyonggi.ac.kr/local/ubion/user/?year={}&semester={}"
 LMS_COURSE_PAGE_URL = "https://lms.kyonggi.ac.kr/course/view.php?id={}"
 LMS_ATTENDANCE_PAGE_URL = "https://lms.kyonggi.ac.kr/report/ubcompletion/user_progress_a.php?id={}"
 LMS_BOARD_PAGE_URL = "https://lms.kyonggi.ac.kr/mod/ubboard/view.php?id={}"

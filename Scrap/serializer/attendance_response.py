@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 class AttendanceItemSerializer(serializers.Serializer):
-    name = serializers.CharField()
+    title = serializers.CharField()
     attendance = serializers.BooleanField()
 
 class AttendancesResponseSerializer(serializers.Serializer):

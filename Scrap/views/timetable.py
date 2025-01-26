@@ -9,17 +9,17 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.auth import VerificationSerializer
+from Scrap.serializer.timetable import TimetableSerializer
 from Scrap.serializer.timetable_response import TimetableResponseSerializer
 
 class TimetableView(GenericAPIView):
-    serializer_class = VerificationSerializer
+    serializer_class = TimetableSerializer
 
     @extend_schema(
         tags=["시간표 API"],
         summary="시간표 추출",
         description="시간표 정보를 추출합니다.",
-        request=VerificationSerializer,
+        request=TimetableSerializer,
         responses={
             status.HTTP_200_OK: TimetableResponseSerializer
         }
@@ -31,10 +31,12 @@ class TimetableView(GenericAPIView):
         if serializer.is_valid():
             studentId = serializer.validated_data.get("studentId")
             password = serializer.validated_data.get("password")
+            year = serializer.validated_data.get("year")
+            semester = serializer.validated_data.get("semester")
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
-                timetable = asyncio.run(extractor.getTimetable())
+                timetable = asyncio.run(extractor.getTimetable(year=year, semester=semester))
 
                 return Response(
                     {

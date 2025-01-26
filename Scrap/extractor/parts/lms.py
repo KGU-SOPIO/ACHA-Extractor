@@ -2,7 +2,6 @@ import re
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
-import traceback
 
 from Scrap.extractor.exception import ErrorType, ExtractorException
 from Scrap.extractor.parts.utils import Utils
@@ -57,7 +56,7 @@ class LmsExtractor:
         alert = mainContainer.find('div', class_='alert')
         # 접근 제한 메세지
         notify = mainContainer.find('div', class_='panel-heading')
-        if alert or notify :
+        if alert or notify:
             raise ExtractorException(type=ErrorType.INVALID_ACCESS)
 
 
@@ -167,6 +166,55 @@ class LmsExtractor:
             raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
+    async def _getPastCourseList(self, year: int, semester: int, close: bool=True) -> list:
+        """
+        과거 강좌 목록을 스크래핑합니다.
+
+        Parameters:
+            year: 연도
+            semester: 학기
+            close: 세션 종료 여부
+
+        Returns:
+            courseList: 강좌 목록
+        """
+        try:
+            # 페이지 요청
+            content = await self._lmsFetch(LMS_PAST_COURSE_PAGE_URL.format(year, semester*10))
+
+            courseContainer = content.find('div', class_='course_lists')
+            courseTable = courseContainer.find('tbody', class_='my-course-lists')
+            courses = courseTable.find_all('tr')
+
+            # 강좌 목록 확인
+            if not courses or courses[0].find('td', colspan='5'):
+                raise ExtractorException(type=ErrorType.COURSE_NOT_EXIST)
+            
+            courseList = []
+            for course in courses:
+                columns = course.find_all('td')
+                courseTag = columns[1].find('a')
+                courseList.append({
+                    "title": courseTag.text.strip().split('(')[0].strip(),
+                    "link": courseTag.get('href'),
+                    "identifier": courseTag.text.strip().split('_')[1].split(')')[0][-4:],
+                    "code": Utils.extractCodeFromUrl(courseTag.get('href'), "id"),
+                    "professor": columns[2].text.strip()
+                })
+
+            return courseList
+
+        except ExtractorException:
+            raise
+        except Exception as e:
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+
+        finally:
+            if close and self.lmsSession:
+                await self.lmsSession.close()
+                self.lmsSession = None
+
+
     async def _getCourseList(self, close: bool=True) -> list:
         """
         강좌 목록을 스크래핑합니다.
@@ -191,7 +239,7 @@ class LmsExtractor:
 
             courseList = [
                 {
-                    "name": course.find('h3').text.strip().split('(')[0].strip(),
+                    "title": course.find('h3').text.strip().split('(')[0].strip(),
                     "link": (courseLink := course.find('a', class_='course_link').get('href')),
                     "identifier": course.find('h3').text.strip().split('_')[1].split(')')[0][-4:],
                     "code": Utils.extractCodeFromUrl(courseLink, "id"),
@@ -264,11 +312,22 @@ class LmsExtractor:
             # 요소 추출
             activities = content.find_all('li', class_='activity')
             for activity in activities:
+                # 활동 존재 여부 필터링
+                classList = activity.get('class', [])
+                if len(classList) < 1:
+                    continue
+
+                # 활동 유형 필터링
+                activityType = LMS_ACTIVITY_TYPES.get(classList[1])
+                if not activityType:
+                    continue
+
                 # 활성 상태
                 activityData = {
                     # 활동에 주차 정보 추가: 필요시 사용
                     # 'week': week,
-                    'available': False if activity.find('div', class_='availability') else True
+                    'available': False if activity.find('div', class_='availability') else True,
+                    'type': activityType
                 }
                 
                 # 제목 스크래핑
@@ -278,7 +337,7 @@ class LmsExtractor:
                     childElement = titleElement.find('span', class_='accesshide')
                     if childElement:
                         childElement.extract()
-                    activityData['name'] = titleElement.text.strip()
+                    activityData['title'] = titleElement.text.strip()
 
                 # 활동 링크 및 코드 스크래핑
                 linkElement = activity.find('a')
@@ -286,28 +345,18 @@ class LmsExtractor:
                     activityLink = linkElement.get('href')
                     activityData['link'] = activityLink
                     activityData['code'] = Utils.extractCodeFromUrl(url=activityLink, paramName="id")
-
-                # 유형 스크래핑
-                classList = activity.get('class', [])
-                if len(classList) > 1:
-                    activityType = LMS_ACTIVITY_TYPES.get(classList[1])
-                    if not activityType:
-                        continue
-
-                    # 과제 유형 추가
-                    activityData['type'] = activityType
-
-                    # 과제 유형 비동기 작업 추가
-                    if activityType == 'assignment' and activityData['available'] == 'true':
-                        tasks.append((activityData['code'], activityData))
-                    
-                    # 강의 유형 추가 스크래핑
-                    if activityType == 'lecture':
-                        deadlineElement = activity.find('span', class_='text-ubstrap')
-                        videoTimeElement = activity.find('span', class_='text-info')
-                        if deadlineElement and videoTimeElement:
-                            activityData['lectureDeadline'] = deadlineElement.text.strip()
-                            activityData['lectureTime'] = videoTimeElement.text.strip().replace(", ", "")
+                
+                # 과제 유형 비동기 작업 추가
+                if activityType == 'assignment' and activityData['available'] == True:
+                    tasks.append((activityData['code'], activityData))
+                
+                # 강의 유형 추가 스크래핑
+                if activityType == 'lecture':
+                    deadlineElement = activity.find('span', class_='text-ubstrap')
+                    lectureTimeElement = activity.find('span', class_='text-info')
+                    if deadlineElement and lectureTimeElement:
+                        activityData['lectureDeadline'] = deadlineElement.text.strip()
+                        activityData['lectureTime'] = lectureTimeElement.text.strip().replace(", ", "")
                 
                 # 객체 추가
                 activityList.append(activityData)
@@ -493,8 +542,8 @@ class LmsExtractor:
         온라인 강의 출석 상태를 스크래핑합니다.
 
         Parameters:
-            courseCode: 강의 코드
-            contain: 강의 코드 포함 여부
+            courseCode: 강좌 코드
+            contain: 강좌 코드 포함 여부
             flat: 주차별 데이터 그룹화
             close: 세션 종료 여부
 
@@ -507,7 +556,10 @@ class LmsExtractor:
         try:
             # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_ATTENDANCE_PAGE_URL.format(courseCode))
-            await self._checkAccess(content=content)
+            try:
+                await self._checkAccess(content=content)
+            except:
+                return None
 
             tableContainer = content.find('table', class_='user_progress_table')
             table = tableContainer.select('tbody tr')
@@ -522,24 +574,24 @@ class LmsExtractor:
                 if title:
                     if flat:
                         attendanceData.append({
-                            'name': title,
+                            'title': title,
                             'attendance': attendance
                         })
                     else:
                         if cells[0].text.strip().isdigit():
                             attendanceData.append([{
-                                'name': title,
+                                'title': title,
                                 'attendance': attendance
                             }])
                         else:
                             attendanceData[-1].append({
-                                'name': title,
+                                'title': title,
                                 'attendance': attendance
                             })
                 elif not flat and cells[0].text.strip().isdigit():
                     attendanceData.append([])
             
-            return {"courseCode": courseCode, "attendances": attendanceData} if contain else attendanceData
+            return {"code": courseCode, "attendances": attendanceData} if contain else attendanceData
         
         except ExtractorException:
             raise

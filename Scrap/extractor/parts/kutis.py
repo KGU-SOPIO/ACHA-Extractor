@@ -12,6 +12,35 @@ class KutisExtractor:
         self.kutisSession: aiohttp.ClientSession | None = None
 
 
+    async def _kutisPostFetch(self, url: str, data: dict[str, int]) -> BeautifulSoup:
+        """
+        POST 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
+
+        인증 세션이 없다면 생성을 시도합니다.
+
+        Parameters:
+            url: 요청 Url
+        
+        Returns:
+            content: BeautifulSoup 객체
+        """
+        try:
+            # 세션 검증 및 생성
+            if self.kutisSession is None:
+                await self._getKutisSession()
+            
+            # 페이지 요청 및 변환 후 반환
+            async with self.kutisSession.post(url, data=data) as response:
+                response.raise_for_status()
+                data = await response.text()
+                return BeautifulSoup(data, 'lxml')
+        
+        except ExtractorException:
+            raise
+        except Exception as e:
+            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
+
+
     async def _kutisFetch(self, url: str) -> BeautifulSoup:
         """
         GET 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
@@ -31,6 +60,7 @@ class KutisExtractor:
 
             # 페이지 요청 및 변환 후 반환
             async with self.kutisSession.get(url) as response:
+                response.raise_for_status()
                 data = await response.text()
                 return BeautifulSoup(data, 'lxml')
         
@@ -99,7 +129,7 @@ class KutisExtractor:
             raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
 
 
-    async def getTimetable(self, close: bool=True) -> list:
+    async def getTimetable(self, year: int | None, semester: int | None, close: bool=True) -> list:
         """
         KUTIS에서 시간표를 스크래핑합니다.
 
@@ -114,7 +144,10 @@ class KutisExtractor:
             classes: 시간표 정보
         """
         try:
-            content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
+            if (year and semester):
+                content = await self._kutisPostFetch(KUTIS_TIMETABLE_PAGE_URL, data={'hyear': year, 'hakgi': semester*10})
+            else:
+                content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
             tables = content.find_all('table', class_='list06')
             timetable = tables[1]
             
@@ -133,10 +166,10 @@ class KutisExtractor:
                 for colIndex, col in enumerate(columns):
                     if col.name == 'th':
                         classTime = int(col.get('rowspan')) // 2
-                        courseName, courseIdentifier, professor, lectureRoom = col.get_text(separator="<br>", strip=True).split("<br>")
+                        title, identifier, professor, lectureRoom = col.get_text(separator="<br>", strip=True).split("<br>")
                         classes.append({
-                            'courseName': courseName,
-                            'courseIdentifier': courseIdentifier,
+                            'title': title,
+                            'identifier': identifier,
                             'professor': professor,
                             'lectureRoom': lectureRoom,
                             'day': days[colIndex-1],

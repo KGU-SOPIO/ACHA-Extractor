@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 class TimetableItemSerializer(serializers.Serializer):
-    courseName = serializers.CharField()
-    courseIdentifier = serializers.CharField()
+    title = serializers.CharField()
+    identifier = serializers.CharField()
     professor = serializers.CharField()
     lectureRoom = serializers.CharField()
     day = serializers.CharField()
