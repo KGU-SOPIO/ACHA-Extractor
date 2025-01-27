@@ -18,7 +18,7 @@ class ErrorType(Enum):
         self.message = message
 
 class ExtractorException(Exception):
-    def __init__(self, type: ErrorType, message: str | None = None, content: BeautifulSoup | None = None, *args, **kwargs):
+    def __init__(self, type: ErrorType, message: str | None = None, content: BeautifulSoup | None = None, *args):
         self.type = type
         self.message = message or type.message
         self.content = content or None
@@ -29,15 +29,23 @@ class ExtractorException(Exception):
             return
         logger = logging.getLogger("watchmen")
         logger.error(
-            f"{self.message}",
+            self.message,
             extra={
                 "type": self.type.title,
                 "content": self.content.prettify() if self.content is not None else None
-            }
+            },
+            exc_info=True
         )
 
     def logWarning(self):
         if self.type in (ErrorType.AUTHENTICATION_FAIL, ErrorType.INVALID_ACCESS, ErrorType.COURSE_NOT_EXIST, ErrorType.TIMETABLE_NOT_EXIST):
             return
         logger = logging.getLogger("watchmen")
-        logger.warning(f"{self.message}")
+        logger.warning(
+            self.message,
+            extra={
+                "type": self.type.title,
+                "content": self.content.prettify() if self.content is not None else None
+            },
+            exc_info=True
+        )

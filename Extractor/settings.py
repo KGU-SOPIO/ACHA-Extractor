@@ -156,7 +156,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[ {module} ] {message}',
+            'format': '{message}',
             'style': "{"
         }
     },
@@ -169,11 +169,12 @@ LOGGING = {
         'loki': {
             'level': 'WARNING',
             'formatter': 'verbose',
-            'filters': ['require_debug_false'],
-            'class': 'Extractor.handlers.LokiHandler',
+            # 'filters': ['require_debug_false'],
+            'class': 'Extractor.handlers.ExtractorHandler',
             'grafanaUrl': env('GRAFANAURL'),
             'grafanaUserId': env('GRAFANAUSERID'),
-            'grafanaToken': env('GRAFANATOKEN')
+            'grafanaToken': env('GRAFANATOKEN'),
+            'discordUrl': env('DISCORDURL')
         }
     },
     'loggers': {

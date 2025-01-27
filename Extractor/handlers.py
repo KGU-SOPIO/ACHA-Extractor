@@ -1,16 +1,28 @@
 import time
-import logging
+from datetime import datetime
 import requests
+import logging
+import traceback
+from discord import SyncWebhook, Embed, Colour
 
-class LokiHandler(logging.Handler):
-    def __init__(self, grafanaUrl: str, grafanaUserId: str, grafanaToken: str):
+class ExtractorHandler(logging.Handler):
+    def __init__(self, grafanaUrl: str, grafanaUserId: str, grafanaToken: str, discordUrl: str):
         super().__init__()
         self.grafanaUrl = grafanaUrl
         self.grafanaUserId = grafanaUserId
         self.grafanaToken = grafanaToken
+        self.discordUrl = discordUrl
     
-    def emit(self, record):
-        entry = self.format(record)
+    def emit(self, record: logging.LogRecord):
+        self._sendLoki(record=record)
+        self._sendDiscord(record=record)
+
+    def _sendLoki(self, record: logging.LogRecord):
+        if record.exc_info:
+            trace = traceback.format_exception(*record.exc_info)
+            record.exc_info = None
+
+        entry = self.format(record=record)
 
         logs = {
             "streams": [
@@ -19,7 +31,9 @@ class LokiHandler(logging.Handler):
                         "service": "extractor",
                         "level": record.levelname.lower(),
                         "type": record.type,
-                        "content": record.content
+                        "module": record.module,
+                        "content": record.content,
+                        "trace": trace
                     },
                     "values": [
                         [
@@ -37,3 +51,24 @@ class LokiHandler(logging.Handler):
             json=logs,
             headers={"Content-Type": "application/json"},
         )
+
+    def _sendDiscord(self, record: logging.LogRecord):
+        if record.exc_info:
+            record.exc_info = None
+        
+        entry = self.format(record=record)
+        
+        embed = Embed(
+            title="Extractor Alert",
+            description=entry,
+            url="https://kgusopio.grafana.net/explore",
+            timestamp=datetime.now(),
+            color=Colour.red()
+        )
+        embed.add_field(name="레벨", value=record.levelname.lower(), inline=False)
+        embed.add_field(name="타입", value=record.type, inline=False)
+        embed.add_field(name="모듈", value=record.module, inline=False)
+        embed.set_footer(text="Extractor")
+
+        webhook = SyncWebhook.from_url(url=self.discordUrl)
+        webhook.send(embed=embed)

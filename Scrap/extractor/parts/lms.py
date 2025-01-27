@@ -43,7 +43,7 @@ class LmsExtractor:
             raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
 
 
-    async def _checkAccess(self, content: BeautifulSoup):
+    async def _checkAccess(self, content: BeautifulSoup, exception: bool=True):
         """
         페이지 접근 여부를 검증합니다.
 
@@ -57,7 +57,10 @@ class LmsExtractor:
         # 접근 제한 메세지
         notify = mainContainer.find('div', class_='panel-heading')
         if alert or notify:
-            raise ExtractorException(type=ErrorType.INVALID_ACCESS)
+            if (exception):
+                raise ExtractorException(type=ErrorType.INVALID_ACCESS)
+            else:
+                return False
 
 
     async def _getLmsSession(self):
@@ -556,9 +559,7 @@ class LmsExtractor:
         try:
             # 페이지 요청 및 권한 검증
             content = await self._lmsFetch(LMS_ATTENDANCE_PAGE_URL.format(courseCode))
-            try:
-                await self._checkAccess(content=content)
-            except:
+            if (await self._checkAccess(content=content, exception=False) is False):
                 return None
 
             tableContainer = content.find('table', class_='user_progress_table')
