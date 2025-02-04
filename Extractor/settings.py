@@ -142,12 +142,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-# Warning : Only For 'collectstatic' Command
-# STATIC_ROOT = "static/"
+if DEBUG:
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 
@@ -169,7 +167,7 @@ LOGGING = {
         'loki': {
             'level': 'WARNING',
             'formatter': 'verbose',
-            # 'filters': ['require_debug_false'],
+            'filters': ['require_debug_false'],
             'class': 'Extractor.handlers.ExtractorHandler',
             'grafanaUrl': env('GRAFANAURL'),
             'grafanaUserId': env('GRAFANAUSERID'),
