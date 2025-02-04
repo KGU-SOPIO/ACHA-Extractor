@@ -38,7 +38,7 @@ class KutisExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
 
     async def _kutisFetch(self, url: str) -> BeautifulSoup:
@@ -67,7 +67,7 @@ class KutisExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
 
     async def _getKutisSession(self):
@@ -92,41 +92,41 @@ class KutisExtractor:
             # KUTIS 로그인 페이지 GET 요청
             async with self.kutisSession.get(KUTIS_LOGIN_PAGE_URL, allow_redirects=False) as formResponse:
                 if formResponse.status != 200:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.KUTIS_ERROR)
 
             # KUTIS 로그인 POST 요청
             async with self.kutisSession.post(KUTIS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 if loginResponse.status != 302:
-                    raise ExtractorException(type=ErrorType.AUTHENTICATION_FAIL)
+                    raise ExtractorException(errorType=ErrorType.AUTHENTICATION_FAIL)
 
                 loginRedirectUrl = loginResponse.headers.get("Location")
                 if not loginRedirectUrl:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.KUTIS_ERROR)
 
             # SSO GET 요청
             async with self.kutisSession.get(loginRedirectUrl, allow_redirects=False) as ssoResponse:
                 if ssoResponse.status != 302:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.KUTIS_ERROR)
 
                 ssoRedirectUrl = ssoResponse.headers.get("Location")
                 if not ssoRedirectUrl:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.KUTIS_ERROR)
 
             # SSO Redirect URL GET 요청
             async with self.kutisSession.get(ssoRedirectUrl, allow_redirects=True) as verifyResponse:
                 if verifyResponse.status != 200:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.KUTIS_ERROR)
 
             # 로그인 상태 검증
             async with self.kutisSession.get(KUTIS_MAIN_PAGE_URL, allow_redirects=True) as mainPageResponse:
                 if mainPageResponse.status != 200:
-                    raise ExtractorException(type=ErrorType.KUTIS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.KUTIS_ERROR)
             return
 
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SYSTEM_ERROR) from e
 
 
     async def getTimetable(self, year: int | None, semester: int | None, close: bool=True) -> list:
@@ -144,15 +144,18 @@ class KutisExtractor:
             classes: 시간표 정보
         """
         try:
+            # 과거 또는 현재 시간표 페이지 요청
             if (year and semester):
                 content = await self._kutisPostFetch(KUTIS_TIMETABLE_PAGE_URL, data={'hyear': year, 'hakgi': semester*10})
             else:
                 content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
+            
             tables = content.find_all('table', class_='list06')
             timetable = tables[1]
             
+            # 시간표 존재 여부 검증
             if timetable.find('p', class_='caution'):
-                raise ExtractorException(type=ErrorType.TIMETABLE_NOT_EXIST)
+                raise ExtractorException(errorType=ErrorType.TIMETABLE_NOT_EXIST)
 
             classes = []
             days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
@@ -183,7 +186,7 @@ class KutisExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
         
         finally:
             if close and self.kutisSession:

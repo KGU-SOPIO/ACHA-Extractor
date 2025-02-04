@@ -1,8 +1,9 @@
 import time
 from datetime import datetime
-import requests
-import logging
 import traceback
+import logging
+import requests
+
 from discord import SyncWebhook, Embed, Colour
 
 class ExtractorHandler(logging.Handler):

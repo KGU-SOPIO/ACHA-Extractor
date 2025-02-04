@@ -61,4 +61,4 @@ class Utils:
             queryParams = urllib.parse.parse_qs(parsedUrl.query)
             return queryParams.get(paramName)[0]
         except Exception as e:
-            raise ExtractorException(type=ErrorType.EXTRACT_PARAMETER_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.EXTRACT_PARAMETER_ERROR) from e

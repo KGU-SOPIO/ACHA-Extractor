@@ -18,11 +18,11 @@ class ErrorType(Enum):
         self.message = message
 
 class ExtractorException(Exception):
-    def __init__(self, type: ErrorType, message: str | None = None, content: BeautifulSoup | None = None, *args):
-        self.type = type
-        self.message = message or type.message
+    def __init__(self, errorType: ErrorType, message: str | None = None, content: BeautifulSoup | None = None, *args):
+        self.type = errorType
+        self.message = message or errorType.message
         self.content = content or None
-        super().__init__(*args)
+        super().__init__(self.message, *args)
 
     def logError(self):
         if self.type in (ErrorType.AUTHENTICATION_FAIL, ErrorType.INVALID_ACCESS, ErrorType.COURSE_NOT_EXIST, ErrorType.TIMETABLE_NOT_EXIST):

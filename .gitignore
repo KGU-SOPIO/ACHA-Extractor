@@ -169,3 +169,8 @@ cython_debug/
 .DS_Store
 
 !Scrap/extractor/parts/
+
+# Temporary Docker Files Ignore
+Dockerfile
+/docker
+.dockerignore

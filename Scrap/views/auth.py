@@ -58,6 +58,6 @@ class AuthenticationView(GenericAPIView):
                 )
             
             except Exception as e:
-                ExtractorException(type=ErrorType.SYSTEM_ERROR, message=str(e), args=e.args).logError()
+                ExtractorException(errorType=ErrorType.SYSTEM_ERROR, message=str(e)).logError()
                 return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

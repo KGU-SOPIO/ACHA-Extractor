@@ -18,6 +18,7 @@ class Extractor(KutisExtractor, LmsExtractor):
                 courseList = await self._getPastCourseList(year=year, semester=semester, close=False)
             else:
                 courseList = await self._getCourseList(close=False)
+            
             if extract:
                 tasks = [self._getCourseData(course) for course in courseList]
                 courseList = await asyncio.gather(*tasks)
@@ -29,7 +30,7 @@ class Extractor(KutisExtractor, LmsExtractor):
 
         except Exception as e:
             # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SYSTEM_ERROR) from e
         
         finally:
             if self.lmsSession:
@@ -63,20 +64,30 @@ class Extractor(KutisExtractor, LmsExtractor):
             # 공지사항, 활동, 출석 비동기 작업 생성 및 실행
             noticeTask = self.getCourseNotice(boardCode=noticeBoardCode, close=False)
             activityTask = self.getCourseActivites(courseCode=course['code'], close=False)
-            attendanceTask = self.getLectureAttendance(courseCode=course['code'], contain=True, flat=True, close=False)
+            attendanceTask = self.getLectureAttendance(courseCode=course['code'], contain=True, close=False)
             notices, activities, attendances = await asyncio.gather(noticeTask, activityTask, attendanceTask)
 
             # 추출된 데이터 병합
             if attendances is not None and attendances['code'] == course['code']:
-                attendanceMap = {lecture['title']: lecture['attendance'] for lecture in attendances['attendances']}
+                # 출석 데이터 튜플 map 생성
+                attendanceMap = {}
+                for weekAttendances in attendances['attendanceData']:
+                    week = weekAttendances['week']
+                    for lecture in weekAttendances['attendances']:
+                        title = lecture['title']
+                        attendance = lecture['attendance']
+                        attendanceMap[(week, title)] = attendance
+                
+                # 활동 데이터에 출석 정보 추가
                 for weekActivities in activities:
-                    for activity in weekActivities:
-                        if activity.get('type') == 'lecture':
-                            try:
-                                if activity['available'] == True:
-                                    activity['attendance'] = attendanceMap[activity['title']]
-                            except KeyError:
-                                raise ExtractorException(type=ErrorType.SCRAPE_ERROR, message="강의 정보와 출석 정보가 일치하지 않습니다.", args=e.args)
+                    week = weekActivities['week']
+                    for activity in weekActivities['activities']:
+                        if activity.get('type') == 'lecture' and activity.get('available', False) is True:
+                            key = (week, activity['title'])
+                            if key in attendanceMap:
+                                activity['attendance'] = attendanceMap[key]
+                            else:
+                                raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, message="강의 정보와 출석 정보가 일치하지 않습니다.")
 
             # 추출된 데이터 추가
             course.update({
@@ -93,4 +104,4 @@ class Extractor(KutisExtractor, LmsExtractor):
         
         except Exception as e:
             # 시스템 예외 처리
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e

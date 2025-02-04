@@ -40,7 +40,7 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
 
     async def _checkAccess(self, content: BeautifulSoup, exception: bool=True):
@@ -57,8 +57,8 @@ class LmsExtractor:
         # 접근 제한 메세지
         notify = mainContainer.find('div', class_='panel-heading')
         if alert or notify:
-            if (exception):
-                raise ExtractorException(type=ErrorType.INVALID_ACCESS)
+            if exception:
+                raise ExtractorException(errorType=ErrorType.INVALID_ACCESS)
             else:
                 return False
 
@@ -86,28 +86,28 @@ class LmsExtractor:
             async with self.lmsSession.post(LMS_LOGIN_URL, data=loginData, allow_redirects=False) as loginResponse:
                 # 정상 응답 검증
                 if loginResponse.status != 303:
-                    raise ExtractorException(type=ErrorType.LMS_ERROR)
+                    raise ExtractorException(errorType=ErrorType.LMS_ERROR)
 
                 # Redirect 링크 추출
                 loginRedirectUrl = loginResponse.headers.get("Location", "")
 
                 if loginRedirectUrl == LMS_LOGIN_FAILURE_URL:
                     # 인증 정보가 잘못된 경우
-                    raise ExtractorException(type=ErrorType.AUTHENTICATION_FAIL)
+                    raise ExtractorException(errorType=ErrorType.AUTHENTICATION_FAIL)
                 elif LMS_LOGIN_SUCCESS_URL in loginRedirectUrl:
                     # 로그인 상태 검증
                     async with self.lmsSession.get(LMS_MAIN_PAGE_URL, allow_redirects=False) as verifyResponse:
                         # 비정상 응답 검증
                         if verifyResponse.status == 303:
-                            raise ExtractorException(type=ErrorType.LMS_ERROR)
+                            raise ExtractorException(errorType=ErrorType.LMS_ERROR)
                     return
                 
-                raise ExtractorException(type=ErrorType.LMS_ERROR)
+                raise ExtractorException(errorType=ErrorType.LMS_ERROR)
 
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SYSTEM_ERROR) from e
 
 
     async def verifyAuthentication(self, getUser: bool) -> tuple:
@@ -135,7 +135,7 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SYSTEM_ERROR, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SYSTEM_ERROR) from e
         
         finally:
             if self.lmsSession:
@@ -166,7 +166,7 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
     async def _getPastCourseList(self, year: int, semester: int, close: bool=True) -> list:
@@ -191,7 +191,7 @@ class LmsExtractor:
 
             # 강좌 목록 확인
             if not courses or courses[0].find('td', colspan='5'):
-                raise ExtractorException(type=ErrorType.COURSE_NOT_EXIST)
+                raise ExtractorException(errorType=ErrorType.COURSE_NOT_EXIST)
             
             courseList = []
             for course in courses:
@@ -204,13 +204,12 @@ class LmsExtractor:
                     "code": Utils.extractCodeFromUrl(courseTag.get('href'), "id"),
                     "professor": columns[2].text.strip()
                 })
-
             return courseList
 
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -238,7 +237,7 @@ class LmsExtractor:
             
             # 강좌 목록 확인
             if not courses:
-                raise ExtractorException(type=ErrorType.COURSE_NOT_EXIST)
+                raise ExtractorException(errorType=ErrorType.COURSE_NOT_EXIST)
 
             courseList = [
                 {
@@ -255,7 +254,7 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -285,12 +284,13 @@ class LmsExtractor:
             tasks = [self._getActivites(week=index, content=section) for index, section in enumerate(sections, start=1)]
             courseActivityList = await asyncio.gather(*tasks)
 
-            return courseActivityList
+            # 활동 존재 검증 및 필터링
+            return [activity for activity in courseActivityList if activity is not None]
         
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -309,6 +309,7 @@ class LmsExtractor:
             activityList: 주차별 활동 목록
         """
         try:
+            weekActivities = {"week": week}
             activityList = []
             tasks = []
 
@@ -327,8 +328,6 @@ class LmsExtractor:
 
                 # 활성 상태
                 activityData = {
-                    # 활동에 주차 정보 추가: 필요시 사용
-                    # 'week': week,
                     'available': False if activity.find('div', class_='availability') else True,
                     'type': activityType
                 }
@@ -358,8 +357,12 @@ class LmsExtractor:
                     deadlineElement = activity.find('span', class_='text-ubstrap')
                     lectureTimeElement = activity.find('span', class_='text-info')
                     if deadlineElement and lectureTimeElement:
-                        activityData['lectureDeadline'] = deadlineElement.text.strip()
-                        activityData['lectureTime'] = lectureTimeElement.text.strip().replace(", ", "")
+                        startAt, deadline = map(str.strip, deadlineElement.text.split("~"))
+                        activityData.update({
+                            'startAt': startAt,
+                            'deadline': deadline,
+                            'lectureTime': lectureTimeElement.text.strip().replace(", ", "")
+                        })
                 
                 # 객체 추가
                 activityList.append(activityData)
@@ -369,13 +372,18 @@ class LmsExtractor:
                 results = await asyncio.gather(*[self.getCourseAssignment(assignmentCode=code, close=False) for code, _ in tasks])
                 for assignmentData, (_, activityData) in zip(results, tasks):
                     activityData.update(assignmentData)
+
+            # 활동 목록 검증
+            if not activityList:
+                return None
             
-            return activityList
+            weekActivities["activities"] = activityList
+            return weekActivities
         
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
     async def getCourseAssignment(self, assignmentCode: str, close: bool=True) -> dict:
@@ -401,8 +409,12 @@ class LmsExtractor:
             
             # 과제 정보 스크래핑
             table = assignmentContainer.find('table', class_='generaltable').find_all('tr')
+
+            # 팀 필드 존재 검증
+            rows = table[2:6] if table[0].find_all('td')[0].get_text(strip=True) == "팀" else table[1:5]
+
             keys = ["gradingStatus", "deadline", "timeLeft", "lastModified"]
-            values = [row.find_all('td')[1].get_text(strip=True) for row in table[1:5]]
+            values = [row.find_all('td')[1].get_text(strip=True) for row in rows]
 
             # 과제 정보 객체 생성
             assignmentData = dict(zip(keys, values))
@@ -422,7 +434,7 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
     
         finally:
             if close and self.lmsSession:
@@ -477,7 +489,7 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
@@ -537,10 +549,10 @@ class LmsExtractor:
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
 
-    async def getLectureAttendance(self, courseCode: str, contain: bool=False, flat: bool=False, close: bool=True) -> dict:
+    async def getLectureAttendance(self, courseCode: str, contain: bool=False, close: bool=True) -> list:
         """
         온라인 강의 출석 상태를 스크래핑합니다.
 
@@ -562,42 +574,30 @@ class LmsExtractor:
             if (await self._checkAccess(content=content, exception=False) is False):
                 return None
 
-            tableContainer = content.find('table', class_='user_progress_table')
-            table = tableContainer.select('tbody tr')
+            table = content.select('table.user_progress_table tbody tr')
 
             attendanceData = []
-
             for row in table:
                 cells = row.find_all('td')
-                title = cells[1].text.strip() if cells[0].text.strip().isdigit() else cells[0].text.strip()
-                attendance = extractAttendance(cells[-2] if cells[0].text.strip().isdigit() else cells[-1])
-
+                week = int(cells[0].text.strip()) if cells[0].text.strip().isdigit() else None
+                title = cells[1].text.strip() if week else cells[0].text.strip()
+                attendance = extractAttendance(cells[-2] if week else cells[-1])
+                
                 if title:
-                    if flat:
+                    if week:
                         attendanceData.append({
-                            'title': title,
-                            'attendance': attendance
+                            "week": week,
+                            "attendances": [{"title": title, "attendance": attendance}]
                         })
                     else:
-                        if cells[0].text.strip().isdigit():
-                            attendanceData.append([{
-                                'title': title,
-                                'attendance': attendance
-                            }])
-                        else:
-                            attendanceData[-1].append({
-                                'title': title,
-                                'attendance': attendance
-                            })
-                elif not flat and cells[0].text.strip().isdigit():
-                    attendanceData.append([])
+                        attendanceData[-1]["attendances"].append({"title": title, "attendance": attendance})
             
-            return {"code": courseCode, "attendances": attendanceData} if contain else attendanceData
+            return {"code": courseCode, "attendanceData": attendanceData} if contain else attendanceData
         
         except ExtractorException:
             raise
         except Exception as e:
-            raise ExtractorException(type=ErrorType.SCRAPE_ERROR, content=content, args=e.args) from e
+            raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR, content=content) from e
 
         finally:
             if close and self.lmsSession:
