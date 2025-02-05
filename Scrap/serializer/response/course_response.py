@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from Scrap.serializer.response.activity_response import ActivityItemSerializer
-from Scrap.serializer import NoticeItemSerializer
+from Scrap.serializer.response.notice_response import NoticeItemSerializer
 
 class CourseItemSerializer(serializers.Serializer):
     title = serializers.CharField()
