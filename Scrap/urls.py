@@ -1,10 +1,12 @@
 from django.urls import path
+from django.http import HttpResponse
 
 from Scrap.views import *
 
 app_name = 'Scrap'
 
 urlpatterns = [
+    path("", lambda request: HttpResponse(status=200), name="check"),
     path("auth/", AuthenticationView.as_view(), name="auth"),
     path("timetable/", TimetableView.as_view(), name="timetable"),
     path('course/', CourseView.as_view(), name='course'),
