@@ -96,8 +96,14 @@ WSGI_APPLICATION = 'Extractor.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
 }
 
@@ -164,21 +170,29 @@ LOGGING = {
         }
     },
     'handlers': {
-        'loki': {
+        'aws': {
+            'level': 'INFO',
+            'formatter': 'verbose',
+            'filters': ['require_debug_false'],
+            'class': 'logging.StreamHandler'
+        },
+        'alert': {
             'level': 'WARNING',
             'formatter': 'verbose',
             'filters': ['require_debug_false'],
             'class': 'Extractor.handlers.ExtractorHandler',
-            'grafanaUrl': env('GRAFANAURL'),
-            'grafanaUserId': env('GRAFANAUSERID'),
-            'grafanaToken': env('GRAFANATOKEN'),
             'discordUrl': env('DISCORDURL')
         }
     },
     'loggers': {
         'watchmen': {
-            'handlers': ['loki'],
+            'handlers': ['alert'],
             'level': 'WARNING',
+            'propagate': False
+        },
+        'analyst': {
+            'handlers': ['aws'],
+            'level': 'INFO',
             'propagate': False
         }
     }

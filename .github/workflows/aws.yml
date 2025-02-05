@@ -44,17 +44,19 @@ jobs:
         IMAGE_TAG: latest
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
-        GRAFANAURL: ${{ secrets.GRAFANAURL }}
-        GRAFANAUSERID: ${{ secrets.GRAFANAUSERID }}
-        GRAFANATOKEN: ${{ secrets.GRAFANATOKEN }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
         DISCORDURL: ${{ secrets.DISCORDURL }}
       run: |
         docker build \
         --build-arg SECRET_KEY=$SECRET_KEY \
         --build-arg ALLOWED_HOSTS=$ALLOWED_HOSTS \
-        --build-arg GRAFANAURL=$GRAFANAURL \
-        --build-arg GRAFANAUSERID=$GRAFANAUSERID \
-        --build-arg GRAFANATOKEN=$GRAFANATOKEN \
+        --build-arg DB_NAME=$DB_NAME \
+        --build-arg DB_USER=$DB_USER \
+        --build-arg DB_PASSWORD=$DB_PASSWORD \
+        --build-arg DB_HOST=$DB_HOST \
         --build-arg DISCORDURL=$DISCORDURL \
         -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
