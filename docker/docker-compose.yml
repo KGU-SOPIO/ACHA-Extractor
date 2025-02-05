@@ -1,0 +1,10 @@
+services:
+  extractor:
+    build:
+      context: ../
+      dockerfile: ./Dockerfile
+    container_name: extractor
+    working_dir: /app
+    command: gunicorn Extractor.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"

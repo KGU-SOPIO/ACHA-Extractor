@@ -167,10 +167,3 @@ cython_debug/
 
 # Mac DS_Store
 .DS_Store
-
-!Scrap/extractor/parts/
-
-# Temporary Docker Files Ignore
-Dockerfile
-/docker
-.dockerignore
