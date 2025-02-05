@@ -9,7 +9,7 @@ env:
   ECR_REPOSITORY: acha/extractor
   ECS_SERVICE: acha-extractor-service
   ECS_CLUSTER: acha-extractor-cluster
-  ECS_TASK_DEFINITION: acha-extractor-task-revision.json
+  ECS_TASK_DEFINITION: .aws/acha-extractor-task-revision.json
 
   CONTAINER_NAME: extractor
 
