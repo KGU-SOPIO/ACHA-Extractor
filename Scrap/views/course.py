@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.course import CourseSerializer
-from Scrap.serializer.course_response import CourseResponseSerializer, CourseNotExistResponse
+from Scrap.serializer import CourseSerializer, CourseResponseSerializer, CourseNotExistResponse
 
 class CourseView(GenericAPIView):
     serializer_class = CourseSerializer

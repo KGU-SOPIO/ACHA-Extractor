@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.timetable import TimetableSerializer
-from Scrap.serializer.timetable_response import TimetableResponseSerializer
+from Scrap.serializer import TimetableSerializer, TimetableResponseSerializer
 
 class TimetableView(GenericAPIView):
     serializer_class = TimetableSerializer

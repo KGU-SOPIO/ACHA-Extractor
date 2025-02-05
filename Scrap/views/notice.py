@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.notice import NoticeSerializer
-from Scrap.serializer.notice_response import NoticeResponseSerializer
+from Scrap.serializer import NoticeSerializer, NoticeResponseSerializer
 
 class NoticeView(GenericAPIView):
     serializer_class = NoticeSerializer

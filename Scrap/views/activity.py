@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.activity import ActivitySerializer
-from Scrap.serializer.activity_response import ActivityResponseSerializer
+from Scrap.serializer import ActivitySerializer, ActivityResponseSerializer
 
 class ActivityView(GenericAPIView):
     serializer_class = ActivitySerializer

@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.attendance import AttendanceSerializer
-from Scrap.serializer.attendance_response import AttendancesResponseSerializer
+from Scrap.serializer import AttendanceSerializer, AttendancesResponseSerializer
 
 class AttendanceView(GenericAPIView):
     serializer_class = AttendanceSerializer

@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.auth import AuthSerializer
-from Scrap.serializer.auth_response import AuthResponseSerializer
+from Scrap.serializer import AuthSerializer, AuthResponseSerializer
 
 class AuthenticationView(GenericAPIView):
     serializer_class = AuthSerializer

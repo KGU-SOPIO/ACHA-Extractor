@@ -43,7 +43,7 @@ class LmsExtractor:
             raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
 
-    async def _checkAccess(self, content: BeautifulSoup, exception: bool=True):
+    async def _checkAccess(self, content: BeautifulSoup, exception: bool=True) -> bool | Exception:
         """
         페이지 접근 여부를 검증합니다.
 

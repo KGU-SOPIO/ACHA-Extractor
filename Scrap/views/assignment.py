@@ -9,8 +9,7 @@ from drf_spectacular.utils import extend_schema
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
-from Scrap.serializer.assignment import AssignmentSerializer
-from Scrap.serializer.assignment_response import AssignmentResponseSerializer
+from Scrap.serializer import AssignmentSerializer, AssignmentResponseSerializer
 
 class AssignmentView(GenericAPIView):
     serializer_class = AssignmentSerializer
