@@ -17,7 +17,7 @@
             "command": [
                 "sh",
                 "-c",
-                "python manage.py makemigrations && python manage.py migrate && gunicorn Extractor.wsgi:application --workers 5 --threads 4 --preload --bind 0.0.0.0:80 --access-logfile - --error-logfile -"
+                "python manage.py makemigrations && python manage.py migrate && gunicorn Extractor.wsgi:application --workers 5 --threads 4 --preload --bind 0.0.0.0:80"
             ],
             "restartPolicy": {
                 "enabled": true
