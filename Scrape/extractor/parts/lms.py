@@ -4,9 +4,9 @@ import re
 import aiohttp
 from bs4 import BeautifulSoup
 
-from Scrap.extractor.exception import ErrorType, ExtractorException
-from Scrap.extractor.parts.constants import *
-from Scrap.extractor.parts.utils import Utils
+from Scrape.extractor.exception import ErrorType, ExtractorException
+from Scrape.extractor.parts.constants import *
+from Scrape.extractor.parts.utils import Utils
 
 
 class LmsExtractor:

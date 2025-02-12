@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from Scrap.serializer.auth import VerificationSerializer
+from Scrape.serializer.auth import VerificationSerializer
 
 
-class ActivitySerializer(serializers.Serializer):
+class AssignmentSerializer(serializers.Serializer):
     authentication = VerificationSerializer(
         required=True,
         error_messages={
@@ -13,11 +13,11 @@ class ActivitySerializer(serializers.Serializer):
     )
 
     code = serializers.CharField(
-        label="강좌 코드",
+        label="과제 코드",
         required=True,
         error_messages={
-            "required": "강좌 코드는 필수 항목입니다.",
-            "blank": "강좌 코드는 필수 항목입니다.",
+            "required": "과제 코드는 필수 항목입니다.",
+            "blank": "과제 코드는 필수 항목입니다.",
         },
     )
 

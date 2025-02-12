@@ -1,8 +1,8 @@
 import aiohttp
 from bs4 import BeautifulSoup
 
-from Scrap.extractor.exception import ErrorType, ExtractorException
-from Scrap.extractor.parts.constants import *
+from Scrape.extractor.exception import ErrorType, ExtractorException
+from Scrape.extractor.parts.constants import *
 
 
 class KutisExtractor:

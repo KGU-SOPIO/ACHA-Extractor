@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.urls import path
 
-from Scrap.views import *
+from Scrape.views import *
 
-app_name = "Scrap"
+app_name = "Scrape"
 
 urlpatterns = [
     path("", lambda request: HttpResponse(status=200), name="check"),

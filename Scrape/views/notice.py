@@ -5,9 +5,9 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from Scrap.extractor import Extractor
-from Scrap.extractor.exception import ErrorType, ExtractorException
-from Scrap.serializer import NoticeResponseSerializer, NoticeSerializer
+from Scrape.extractor import Extractor
+from Scrape.extractor.exception import ErrorType, ExtractorException
+from Scrape.serializer import NoticeResponseSerializer, NoticeSerializer
 
 
 class NoticeView(GenericAPIView):

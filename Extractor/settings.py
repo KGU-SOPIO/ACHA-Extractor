@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     # DRF Spectacular
     "drf_spectacular",
     # Apps
-    "Scrap",
+    "Scrape",
 ]
 
 # Django Rest Framework Settings

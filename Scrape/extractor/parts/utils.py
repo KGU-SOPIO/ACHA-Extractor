@@ -1,7 +1,7 @@
 import urllib
 import urllib.parse
 
-from Scrap.extractor.exception import ErrorType, ExtractorException
+from Scrape.extractor.exception import ErrorType, ExtractorException
 
 
 class Utils:

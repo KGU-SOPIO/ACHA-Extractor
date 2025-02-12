@@ -5,9 +5,9 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from Scrap.extractor import Extractor
-from Scrap.extractor.exception import ErrorType, ExtractorException
-from Scrap.serializer import ActivityResponseSerializer, ActivitySerializer
+from Scrape.extractor import Extractor
+from Scrape.extractor.exception import ErrorType, ExtractorException
+from Scrape.serializer import ActivityResponseSerializer, ActivitySerializer
 
 
 class ActivityView(GenericAPIView):
@@ -15,8 +15,8 @@ class ActivityView(GenericAPIView):
 
     @extend_schema(
         tags=["강좌 API"],
-        summary="강좌 활동 추출",
-        description="강좌의 활동 정보를 추출합니다.",
+        summary="강좌 주차별 활동 추출",
+        description="강좌의 주차별 활동 정보를 추출합니다.",
         request=ActivitySerializer,
         responses={status.HTTP_200_OK: ActivityResponseSerializer},
     )

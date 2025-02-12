@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from Scrap.serializer.auth import VerificationSerializer
+from Scrape.serializer.auth import VerificationSerializer
 
 
 class CourseSerializer(serializers.Serializer):

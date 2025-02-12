@@ -1,7 +1,7 @@
 import asyncio
 
-from Scrap.extractor.exception import ErrorType, ExtractorException
-from Scrap.extractor.parts import KutisExtractor, LmsExtractor, Utils
+from Scrape.extractor.exception import ErrorType, ExtractorException
+from Scrape.extractor.parts import KutisExtractor, LmsExtractor, Utils
 
 
 class Extractor(KutisExtractor, LmsExtractor):
