@@ -17,7 +17,7 @@
             "command": [
                 "sh",
                 "-c",
-                "python manage.py makemigrations && python manage.py migrate && gunicorn Extractor.wsgi:application --workers 5 --threads 4 --preload --bind 0.0.0.0:80"
+                "python manage.py makemigrations && python manage.py migrate && gunicorn Extractor.wsgi:application --workers 3 --threads 4 --preload --bind 0.0.0.0:80"
             ],
             "restartPolicy": {
                 "enabled": true
@@ -76,8 +76,8 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "2048",
-    "memory": "4096",
+    "cpu": "1024",
+    "memory": "3072",
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
