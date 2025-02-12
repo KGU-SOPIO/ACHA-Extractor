@@ -17,7 +17,7 @@ class LmsExtractor:
 
         self.lmsSession: aiohttp.ClientSession | None = None
 
-    @retryOnTimeout
+    @retryOnTimeout()
     async def _lmsFetch(self, url: str) -> BeautifulSoup:
         """
         GET 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
