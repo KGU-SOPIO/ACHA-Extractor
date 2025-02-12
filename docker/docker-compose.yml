@@ -6,12 +6,12 @@ services:
     container_name: extractor
     working_dir: /app
     environment:
-      - SECRET_KEY=""
-      - ALLOWED_HOSTS="*"
-      - DISCORDURL=""
+      - SECRET_KEY=SECRET_KEY
+      - ALLOWED_HOSTS=*
+      - DISCORDURL=DISCORDURL
     command: >
       sh -c "python manage.py makemigrations &&
         python manage.py migrate &&
-        gunicorn Extractor.wsgi:application --workers 5 --threads 4 --preload --bind 0.0.0.0:80 --access-logfile - --error-logfile -"
+        gunicorn Extractor.wsgi:application --workers 5 --threads 4 --preload --bind 0.0.0.0:8000 --access-logfile - --error-logfile -"
     ports:
-      - "80:80"
+      - "8000:8000"
