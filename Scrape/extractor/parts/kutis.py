@@ -1,6 +1,7 @@
 import aiohttp
 from bs4 import BeautifulSoup
 
+from Scrape.extractor.decorator import retryOnTimeout
 from Scrape.extractor.exception import ErrorType, ExtractorException
 from Scrape.extractor.parts.constants import *
 
@@ -12,6 +13,7 @@ class KutisExtractor:
 
         self.kutisSession: aiohttp.ClientSession | None = None
 
+    @retryOnTimeout
     async def _kutisPostFetch(self, url: str, data: dict[str, int]) -> BeautifulSoup:
         """
         POST 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
@@ -40,6 +42,7 @@ class KutisExtractor:
         except Exception as e:
             raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
+    @retryOnTimeout
     async def _kutisFetch(self, url: str) -> BeautifulSoup:
         """
         GET 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
@@ -77,11 +80,14 @@ class KutisExtractor:
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
         }
 
+        # 타임아웃 설정
+        timeout = aiohttp.ClientTimeout(total=10)
+
         # 로그인 데이터
         loginData = {"id": self.studentId, "pw": self.password}
 
         # 세션 초기화
-        self.kutisSession = aiohttp.ClientSession(headers=headers)
+        self.kutisSession = aiohttp.ClientSession(headers=headers, timeout=timeout)
 
         try:
             # KUTIS 로그인 페이지 GET 요청

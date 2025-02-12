@@ -4,6 +4,7 @@ import re
 import aiohttp
 from bs4 import BeautifulSoup
 
+from Scrape.extractor.decorator import retryOnTimeout
 from Scrape.extractor.exception import ErrorType, ExtractorException
 from Scrape.extractor.parts.constants import *
 from Scrape.extractor.parts.utils import Utils
@@ -16,6 +17,7 @@ class LmsExtractor:
 
         self.lmsSession: aiohttp.ClientSession | None = None
 
+    @retryOnTimeout
     async def _lmsFetch(self, url: str) -> BeautifulSoup:
         """
         GET 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
@@ -76,8 +78,11 @@ class LmsExtractor:
         # 로그인 데이터
         loginData = {"username": self.studentId, "password": self.password}
 
+        # 타임아웃 설정
+        timeout = aiohttp.ClientTimeout(total=10)
+
         # 세션 초기화
-        self.lmsSession = aiohttp.ClientSession(headers=headers)
+        self.lmsSession = aiohttp.ClientSession(headers=headers, timeout=timeout)
 
         try:
             # LMS 로그인 요청
