@@ -13,7 +13,7 @@ class KutisExtractor:
 
         self.kutisSession: aiohttp.ClientSession | None = None
 
-    @retryOnTimeout
+    @retryOnTimeout()
     async def _kutisPostFetch(self, url: str, data: dict[str, int]) -> BeautifulSoup:
         """
         POST 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
@@ -42,7 +42,7 @@ class KutisExtractor:
         except Exception as e:
             raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
-    @retryOnTimeout
+    @retryOnTimeout()
     async def _kutisFetch(self, url: str) -> BeautifulSoup:
         """
         GET 요청을 보내고, 응답을 BeautifulSoup 객체로 변환하여 반환합니다.
