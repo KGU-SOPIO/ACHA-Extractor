@@ -2,22 +2,23 @@ from rest_framework import serializers
 
 from Scrap.serializer.auth import VerificationSerializer
 
+
 class NoticeSerializer(serializers.Serializer):
     authentication = VerificationSerializer(
-        required = True,
-        error_messages = {
+        required=True,
+        error_messages={
             "required": "로그인 정보는 필수 항목입니다.",
-            "blank": "로그인 정보는 필수 항목입니다."
-        }
+            "blank": "로그인 정보는 필수 항목입니다.",
+        },
     )
 
     code = serializers.CharField(
-        label = "공지사항 게시판 코드",
-        required = True,
-        error_messages = {
+        label="공지사항 게시판 코드",
+        required=True,
+        error_messages={
             "required": "공지사항 게시판 코드는 필수 항목입니다.",
-            "blank": "공지사항 게시판 코드는 필수 항목입니다."
-        }
+            "blank": "공지사항 게시판 코드는 필수 항목입니다.",
+        },
     )
 
     def validate(self, attrs):

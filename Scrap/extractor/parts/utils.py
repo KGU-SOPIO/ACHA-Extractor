@@ -3,6 +3,7 @@ import urllib.parse
 
 from Scrap.extractor.exception import ErrorType, ExtractorException
 
+
 class Utils:
     @staticmethod
     def getDepartment(major: str) -> tuple:
@@ -25,8 +26,22 @@ class Utils:
             "교직학부": {""},
             "교양학부": {""},
             "호텔외식경영학부": {"호텔경영전공", "외식·조리전공"},
-            "글로벌어문학부": {"독어독문전공", "프랑스어문전공", "일어일문전공", "중어중문전공", "러시아어문전공"},
-            "디자인비즈학부": {"시각정보디자인전공", "산업디자인전공", "장신구금속디자인전공", "한국화전공", "서양화전공", "미술경영전공", "서예전공"},
+            "글로벌어문학부": {
+                "독어독문전공",
+                "프랑스어문전공",
+                "일어일문전공",
+                "중어중문전공",
+                "러시아어문전공",
+            },
+            "디자인비즈학부": {
+                "시각정보디자인전공",
+                "산업디자인전공",
+                "장신구금속디자인전공",
+                "한국화전공",
+                "서양화전공",
+                "미술경영전공",
+                "서예전공",
+            },
             "Fine Arts학부": {"한국화전공", "서양화전공", "미술경영전공", "서예전공"},
             "스포츠과학부": {"스포츠건강과학전공", "스포츠레저산업전공"},
             "공공안전학부": {"범죄교정심리학전공", "경찰행정학전공"},
@@ -49,10 +64,9 @@ class Utils:
         for department, majors in departmentGroup.items():
             if major in majors:
                 return department, major
-        
+
         # 대학 소속 전공 판별
         return "", major
-
 
     @staticmethod
     def extractCodeFromUrl(url: str, paramName: str) -> str:

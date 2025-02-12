@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class TimetableItemSerializer(serializers.Serializer):
     title = serializers.CharField()
     identifier = serializers.CharField()
@@ -10,7 +11,6 @@ class TimetableItemSerializer(serializers.Serializer):
     startAt = serializers.IntegerField()
     endAt = serializers.IntegerField()
 
+
 class TimetableResponseSerializer(serializers.Serializer):
-    data = serializers.ListField(
-        child = TimetableItemSerializer()
-    )
+    data = serializers.ListField(child=TimetableItemSerializer())

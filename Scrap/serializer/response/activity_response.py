@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class ActivityItemSerializer(serializers.Serializer):
     available = serializers.BooleanField()
     title = serializers.CharField()
@@ -16,13 +17,11 @@ class ActivityItemSerializer(serializers.Serializer):
     submitStatus = serializers.CharField()
     attendance = serializers.BooleanField()
 
+
 class ActivitiesSerializer(serializers.Serializer):
     week = serializers.IntegerField()
-    activities = serializers.ListField(
-        child = ActivityItemSerializer()
-    )
+    activities = serializers.ListField(child=ActivityItemSerializer())
+
 
 class ActivityResponseSerializer(serializers.Serializer):
-    data = serializers.ListField(
-        child = ActivitiesSerializer()
-    )
+    data = serializers.ListField(child=ActivitiesSerializer())

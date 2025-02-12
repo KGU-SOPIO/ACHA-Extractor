@@ -1,15 +1,14 @@
 import asyncio
 
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework import status
-
-from drf_spectacular.utils import extend_schema
 
 from Scrap.extractor import Extractor
 from Scrap.extractor.exception import ErrorType, ExtractorException
+from Scrap.serializer import TimetableResponseSerializer, TimetableSerializer
 
-from Scrap.serializer import TimetableSerializer, TimetableResponseSerializer
 
 class TimetableView(GenericAPIView):
     serializer_class = TimetableSerializer
@@ -19,11 +18,8 @@ class TimetableView(GenericAPIView):
         summary="시간표 추출",
         description="시간표 정보를 추출합니다.",
         request=TimetableSerializer,
-        responses={
-            status.HTTP_200_OK: TimetableResponseSerializer
-        }
+        responses={status.HTTP_200_OK: TimetableResponseSerializer},
     )
-
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
 
@@ -35,22 +31,27 @@ class TimetableView(GenericAPIView):
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
-                timetable = asyncio.run(extractor.getTimetable(year=year, semester=semester))
-
-                return Response(
-                    {
-                        "data": timetable
-                    },
-                    status=status.HTTP_200_OK
+                timetable = asyncio.run(
+                    extractor.getTimetable(year=year, semester=semester)
                 )
-            
+
+                return Response({"data": timetable}, status=status.HTTP_200_OK)
+
             except ExtractorException as e:
                 e.logError()
 
                 if e.type == ErrorType.TIMETABLE_NOT_EXIST:
-                    return Response({"message": e.message}, status=status.HTTP_404_NOT_FOUND)
-                return Response({"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {"message": e.message}, status=status.HTTP_404_NOT_FOUND
+                    )
+                return Response(
+                    {"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             except Exception as e:
-                ExtractorException(errorType=ErrorType.SYSTEM_ERROR, message=str(e)).logError()
-                return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                ExtractorException(
+                    errorType=ErrorType.SYSTEM_ERROR, message=str(e)
+                ).logError()
+                return Response(
+                    {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
