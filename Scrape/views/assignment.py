@@ -7,26 +7,26 @@ from rest_framework.response import Response
 
 from Scrape.extractor import Extractor
 from Scrape.extractor.exception import ErrorType, ExtractorException
-from Scrape.serializer import AssignmentResponseSerializer, AssignmentSerializer
+from Scrape.serializer import AssignmentResponseSerializer, AuthSerializer
 
 
 class AssignmentView(GenericAPIView):
-    serializer_class = AssignmentSerializer
+    serializer_class = AuthSerializer
 
     @extend_schema(
         tags=["강좌 API"],
         summary="강좌 과제 추출",
         description="강좌의 과제 정보를 추출합니다.",
-        request=AssignmentSerializer,
+        request=AuthSerializer,
         responses={status.HTTP_200_OK: AssignmentResponseSerializer},
     )
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             studentId = serializer.validated_data.get("studentId")
             password = serializer.validated_data.get("password")
-            assignmentCode = serializer.validated_data.get("code")
+            assignmentCode = self.kwargs.get("assignmentCode")
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
