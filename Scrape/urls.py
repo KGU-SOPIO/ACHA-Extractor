@@ -16,7 +16,7 @@ app_name = "Scrape"
 urlpatterns = [
     path("", lambda request: HttpResponse(status=200), name="check"),
     path(
-        "api/v1/",
+        "v1/",
         include(
             [
                 path("auth/", AuthenticationView.as_view(), name="auth"),
