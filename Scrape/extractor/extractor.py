@@ -76,17 +76,17 @@ class Extractor(KutisExtractor, LmsExtractor):
                 courseCode=course["code"], close=False
             )
             attendanceTask = self.getLectureAttendance(
-                courseCode=course["code"], contain=True, close=False
+                courseCode=course["code"], close=False
             )
-            notices, activities, attendances = await asyncio.gather(
+            noticeData, activityData, attendanceData = await asyncio.gather(
                 noticeTask, activityTask, attendanceTask
             )
 
             # 추출된 데이터 병합
-            if attendances is not None and attendances["code"] == course["code"]:
+            if attendanceData is not None:
                 # 출석 데이터 튜플 map 생성
                 attendanceMap = {}
-                for weekAttendances in attendances["attendanceData"]:
+                for weekAttendances in attendanceData:
                     week = weekAttendances["week"]
                     for lecture in weekAttendances["attendances"]:
                         title = lecture["title"]
@@ -94,7 +94,7 @@ class Extractor(KutisExtractor, LmsExtractor):
                         attendanceMap[(week, title)] = attendance
 
                 # 활동 데이터에 출석 정보 추가
-                for weekActivities in activities:
+                for weekActivities in activityData:
                     week = weekActivities["week"]
                     for activity in weekActivities["activities"]:
                         if (
@@ -114,8 +114,8 @@ class Extractor(KutisExtractor, LmsExtractor):
             course.update(
                 {
                     "noticeCode": noticeBoardCode,
-                    "notices": notices,
-                    "activities": activities,
+                    "notices": noticeData,
+                    "activities": activityData,
                 }
             )
 

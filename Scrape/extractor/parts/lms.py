@@ -618,9 +618,7 @@ class LmsExtractor:
                 errorType=ErrorType.SCRAPE_ERROR, content=content
             ) from e
 
-    async def getLectureAttendance(
-        self, courseCode: str, contain: bool = False, close: bool = True
-    ) -> list:
+    async def getLectureAttendance(self, courseCode: str, close: bool = True) -> list:
         """
         온라인 강의 출석 상태를 스크래핑합니다.
 
@@ -671,11 +669,7 @@ class LmsExtractor:
                             {"title": title, "attendance": attendance}
                         )
 
-            return (
-                {"code": courseCode, "attendanceData": attendanceData}
-                if contain
-                else attendanceData
-            )
+            return attendanceData
 
         except ExtractorException:
             raise
