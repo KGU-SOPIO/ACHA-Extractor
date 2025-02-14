@@ -27,7 +27,7 @@ class CourseView(GenericAPIView):
             status.HTTP_404_NOT_FOUND: CourseNotExistResponse,
         },
     )
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():

@@ -1,14 +1,24 @@
 from rest_framework import serializers
 
-from Scrape.serializer.auth import VerificationSerializer
-
 
 class TimetableSerializer(serializers.Serializer):
-    authentication = VerificationSerializer(
+    studentId = serializers.CharField(
+        label="학번",
+        required=True,
+        min_length=9,
+        max_length=9,
+        error_messages={
+            "required": "학번은 필수 항목입니다.",
+            "blank": "학번은 필수 항목입니다.",
+        },
+    )
+
+    password = serializers.CharField(
+        label="비밀번호",
         required=True,
         error_messages={
-            "required": "로그인 정보는 필수 항목입니다.",
-            "blank": "로그인 정보는 필수 항목입니다.",
+            "required": "비밀번호는 필수 항목입니다.",
+            "blank": "비밀번호는 필수 항목입니다.",
         },
     )
 
@@ -20,9 +30,3 @@ class TimetableSerializer(serializers.Serializer):
         required=False,
         error_messages={"invalid_choice": "학기는 1 또는 2만 입력해야 합니다."},
     )
-
-    def validate(self, attrs):
-        authentication_data = attrs["authentication"]
-        attrs["studentId"] = authentication_data["studentId"]
-        attrs["password"] = authentication_data["password"]
-        return attrs

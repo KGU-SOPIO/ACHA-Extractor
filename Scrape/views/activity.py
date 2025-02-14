@@ -7,26 +7,26 @@ from rest_framework.response import Response
 
 from Scrape.extractor import Extractor
 from Scrape.extractor.exception import ErrorType, ExtractorException
-from Scrape.serializer import ActivityResponseSerializer, ActivitySerializer
+from Scrape.serializer import ActivityResponseSerializer, AuthSerializer
 
 
 class ActivityView(GenericAPIView):
-    serializer_class = ActivitySerializer
+    serializer_class = AuthSerializer
 
     @extend_schema(
         tags=["강좌 API"],
         summary="강좌 주차별 활동 추출",
         description="강좌의 주차별 활동 정보를 추출합니다.",
-        request=ActivitySerializer,
+        request=AuthSerializer,
         responses={status.HTTP_200_OK: ActivityResponseSerializer},
     )
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             studentId = serializer.validated_data.get("studentId")
             password = serializer.validated_data.get("password")
-            courseCode = serializer.validated_data.get("code")
+            courseCode = self.kwargs.get("courseCode")
 
             try:
                 extractor = Extractor(studentId=studentId, password=password)
