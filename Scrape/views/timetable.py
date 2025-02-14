@@ -20,7 +20,7 @@ class TimetableView(GenericAPIView):
         request=TimetableSerializer,
         responses={status.HTTP_200_OK: TimetableResponseSerializer},
     )
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
