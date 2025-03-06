@@ -454,7 +454,7 @@ class LmsExtractor:
             assignmentContainer = content.find("div", id="region-main")
 
             # 과제 설명 스크래핑
-            descriptionContainer = assignmentContainer.find("div", id="intro")
+            descriptionContainer = assignmentContainer.find("div", class_="no-overflow")
             description = " ".join(
                 descriptionContainer.get_text(separator="", strip=True).split()
             )
