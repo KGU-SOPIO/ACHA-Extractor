@@ -9,7 +9,6 @@ class Utils:
     def getDepartment(major: str) -> tuple:
         """
         전공으로 학부를 판별합니다.
-        ! KUTIS 스크래핑 불가로 인한 지속적인 업데이트 필요
 
         1. 학부, 전공 존재
         2. 가전공으로 학부만 존재
@@ -23,9 +22,6 @@ class Utils:
             major: 전공
         """
         departmentGroup = {
-            "교직학부": {""},
-            "교양학부": {""},
-            "자유전공학부": {""},
             "글로벌어문학부": {
                 "독어독문전공",
                 "프랑스어문전공",
@@ -45,7 +41,12 @@ class Utils:
             "공공인재학부": {"행정학전공", "정치외교학전공"},
             "경제학부": {"경제학전공", "응용통계학전공", "지식재산학전공"},
             "경영학부": {"경영학전공", "회계세무학전공"},
-            "AI컴퓨터공학부": {"컴퓨터공학전공", "인공지능전공", "SW안전보안전공"},
+            "AI컴퓨터공학부": {
+                "컴퓨터공학전공",
+                "인공지능전공",
+                "SW안전보안전공",
+                "모빌리티SW전공",
+            },
             "바이오융합학부": {"생명과학전공", "식품생물공학전공"},
             "전자공학부": {"나노·반도체전공", "정보통신시스템전공"},
             "신소재화학공학부": {"신소재공학전공", "화학공학전공"},
@@ -67,6 +68,9 @@ class Utils:
 
     @staticmethod
     def extractCodeFromUrl(url: str, paramName: str) -> str:
+        """
+        Url에서 파라미터 값을 추출합니다.
+        """
         try:
             parsedUrl = urllib.parse.urlparse(url=url)
             queryParams = urllib.parse.parse_qs(parsedUrl.query)

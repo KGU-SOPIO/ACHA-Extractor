@@ -22,6 +22,7 @@ class KutisExtractor:
 
         Parameters:
             url: 요청 Url
+            data: 요청 body Data
 
         Returns:
             content: BeautifulSoup 객체
@@ -148,8 +149,11 @@ class KutisExtractor:
         ! rowspan으로 인한 비정확한 요일 수집 가능성, 문제 해결 필요
             -> 1 ~ 3교시(오전), 4 ~ 5교시, 6 ~ 7교시(오후) 시간대 외 수업 시간이 존재하는지 확인 필요
                 : 존재하지 않으면 해결 필요 없음
+            -> 문제 없음, QA 추가 검증 진행
 
         Parameters:
+            year: 추출 연도
+            semester: 추출 학기
             close: 세션 종료 여부
 
         Returns:
@@ -165,6 +169,7 @@ class KutisExtractor:
             else:
                 content = await self._kutisFetch(KUTIS_TIMETABLE_PAGE_URL)
 
+            # 시간표 요소 선택
             tables = content.find_all("table", class_="list06")
             timetable = tables[1]
 
@@ -176,6 +181,7 @@ class KutisExtractor:
             days = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
             period = 0
 
+            # 시간표 정보 추출
             rows = timetable.find_all("tr")
             for rowIndex in range(1, len(rows), 2):
                 period += 1

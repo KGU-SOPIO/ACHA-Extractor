@@ -143,29 +143,36 @@ else:
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {"verbose": {"format": "{message}", "style": "{"}},
     "filters": {
         "require_debug_false": {
             "()": "django.utils.log.RequireDebugFalse",
         }
     },
-    "handlers": {
-        "aws": {
-            "level": "INFO",
-            "formatter": "verbose",
-            "filters": ["require_debug_false"],
-            "class": "logging.StreamHandler",
+    "formatters": {
+        "info": {"format": "{asctime} {message}", "style": "{"},
+        "warning": {
+            "format": "[{levelname}] {asctime} {message}\n{exc_info}",
+            "style": "{",
         },
-        "alert": {
+    },
+    "handlers": {
+        "info": {
+            "level": "INFO",
+            "formatter": "info",
+            "filters": ["require_debug_false"],
+            "class": "Extractor.handlers.AnalystHandler",
+            "discordUrl": env("INFO_DISCORDURL"),
+        },
+        "warning": {
             "level": "WARNING",
-            "formatter": "verbose",
+            "formatter": "warning",
             "filters": ["require_debug_false"],
             "class": "Extractor.handlers.ExtractorHandler",
-            "discordUrl": env("DISCORDURL"),
+            "discordUrl": env("WARNING_DISCORDURL"),
         },
     },
     "loggers": {
-        "watchmen": {"handlers": ["alert"], "level": "WARNING", "propagate": False},
-        "analyst": {"handlers": ["aws"], "level": "INFO", "propagate": False},
+        "analyst": {"handlers": ["info"], "level": "INFO", "propagate": False},
+        "watchmen": {"handlers": ["warning"], "level": "WARNING", "propagate": False},
     },
 }

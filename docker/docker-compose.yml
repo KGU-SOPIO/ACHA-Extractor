@@ -8,7 +8,8 @@ services:
     environment:
       - SECRET_KEY=SECRET_KEY
       - ALLOWED_HOSTS=*
-      - DISCORDURL=DISCORDURL
+      - INFO_DISCORDURL=https://discord.com/api/webhooks/1347100114786975759/XdrbsTYyfp96EAXxxogwdquYqdxOWlUkAlv8qPclCc5qI6Rz72Vt4obNSNzJKmPk_ADz
+      - WARNING_DISCORDURL=https://discord.com/api/webhooks/1324407453340930058/fGxYSs1oGUVd7yiZWczMo6MbEjnD89tNcC_MRisifljTZkhuQjEYhluF32-oeckOu0kf
     command: >
       sh -c "python manage.py makemigrations &&
         python manage.py migrate &&

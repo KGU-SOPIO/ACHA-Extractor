@@ -11,6 +11,10 @@ from Scrape.serializer import ActivityResponseSerializer, AuthSerializer
 
 
 class ActivityView(GenericAPIView):
+    """
+    해당 강좌의 활동 정보를 추출하는 View입니다.
+    """
+
     serializer_class = AuthSerializer
 
     @extend_schema(

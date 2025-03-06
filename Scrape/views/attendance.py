@@ -11,6 +11,10 @@ from Scrape.serializer import AttendancesResponseSerializer, AuthSerializer
 
 
 class AttendanceView(GenericAPIView):
+    """
+    강좌의 강의 출석 정보를 추출하는 View입니다.
+    """
+
     serializer_class = AuthSerializer
 
     @extend_schema(

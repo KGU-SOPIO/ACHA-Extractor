@@ -15,6 +15,10 @@ from Scrape.serializer import (
 
 
 class CourseView(GenericAPIView):
+    """
+    해당 학기의 모든 강좌의 정보를 추출하는 View입니다.
+    """
+
     serializer_class = CourseSerializer
 
     @extend_schema(

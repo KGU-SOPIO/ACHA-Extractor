@@ -16,7 +16,19 @@ class Extractor(KutisExtractor, LmsExtractor):
     async def getCourses(
         self, year: int | None, semester: int | None, extract: bool
     ) -> list:
+        """
+        모든 강좌의 데이터를 스크래핑합니다.
+
+        Parameters:
+            year: 추출 연도
+            semester: 추출 학기
+            extract: 개별 강좌 데이터 추출 여부
+
+        Returns:
+            courseList: 모든 강좌 데이터
+        """
         try:
+            # 과거 또는 현재 강좌 목록 요청
             if year and semester:
                 courseList = await self._getPastCourseList(
                     year=year, semester=semester, close=False
