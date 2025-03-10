@@ -151,7 +151,7 @@ LOGGING = {
     "formatters": {
         "info": {"format": "{asctime} {message}", "style": "{"},
         "warning": {
-            "format": "[{levelname}] {asctime} {message}\n{exc_info}",
+            "format": "[{levelname}] {asctime} {message}",
             "style": "{",
         },
     },

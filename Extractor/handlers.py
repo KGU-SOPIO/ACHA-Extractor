@@ -11,7 +11,20 @@ class ExtractorHandler(logging.Handler):
         self.streamHandler = logging.StreamHandler()
 
     def emit(self, record: logging.LogRecord):
-        self.streamHandler.emit(record=record)
+        details = []
+        if hasattr(record, "content") and record.content:
+            details.append("Content: " + str(record.content))
+        if hasattr(record, "data") and record.data:
+            details.append("Data: " + str(record.data))
+
+        streamRecord = record
+        streamRecord.msg = f"{record.getMessage()}\n" + "\n".join(details)
+
+        self.streamHandler.emit(record=streamRecord)
+
+        # Traceback 제거
+        record.exc_info = None
+        record.exc_text = None
 
         entry = self.format(record=record)
 
