@@ -11,6 +11,10 @@ from Scrape.serializer import AssignmentResponseSerializer, AuthSerializer
 
 
 class AssignmentView(GenericAPIView):
+    """
+    해당 과제의 정보를 추출하는 View입니다.
+    """
+
     serializer_class = AuthSerializer
 
     @extend_schema(

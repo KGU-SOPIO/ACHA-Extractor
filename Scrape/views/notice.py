@@ -11,6 +11,10 @@ from Scrape.serializer import AuthSerializer, NoticeResponseSerializer
 
 
 class NoticeView(GenericAPIView):
+    """
+    해당 강좌의 모든 공지를 추출하는 View입니다.
+    """
+
     serializer_class = AuthSerializer
 
     @extend_schema(

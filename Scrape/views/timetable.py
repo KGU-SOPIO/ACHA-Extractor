@@ -11,6 +11,10 @@ from Scrape.serializer import TimetableResponseSerializer, TimetableSerializer
 
 
 class TimetableView(GenericAPIView):
+    """
+    이용자의 시간표 정보를 추출합니다.
+    """
+
     serializer_class = TimetableSerializer
 
     @extend_schema(

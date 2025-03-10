@@ -11,6 +11,10 @@ from Scrape.serializer import AuthResponseSerializer, AuthUserSerializer
 
 
 class AuthenticationView(GenericAPIView):
+    """
+    학생 정보를 추출하는 View입니다.
+    """
+
     serializer_class = AuthUserSerializer
 
     @extend_schema(

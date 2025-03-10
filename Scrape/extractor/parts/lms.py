@@ -53,6 +53,7 @@ class LmsExtractor:
 
         Parameters:
             content: BeautifulSoup 객체
+            exception: 예외 발생 여부
         """
         mainContainer = content.find("div", id="region-main")
 
@@ -135,8 +136,8 @@ class LmsExtractor:
             # 사용자 정보 추출
             if getUser:
                 userData = await self._getUserData()
-                return True, userData, "인증에 성공했습니다."
-            return True, None, "인증에 성공했습니다."
+                return True, userData, "인증에 성공했어요"
+            return True, None, "인증에 성공했어요"
 
         except ExtractorException:
             raise
@@ -164,6 +165,7 @@ class LmsExtractor:
                 "value"
             )
 
+            # 전공, 학부 판별
             major = content.find("input", id="id_department").get("value")
             department, major = Utils.getDepartment(major=major)
             userData["department"] = department
@@ -452,8 +454,9 @@ class LmsExtractor:
             assignmentContainer = content.find("div", id="region-main")
 
             # 과제 설명 스크래핑
-            description = assignmentContainer.find("div", id="intro").get_text(
-                separator="\n", strip=True
+            descriptionContainer = assignmentContainer.find("div", class_="no-overflow")
+            description = " ".join(
+                descriptionContainer.get_text(separator="", strip=True).split()
             )
 
             # 과제 정보 스크래핑
@@ -624,8 +627,6 @@ class LmsExtractor:
 
         Parameters:
             courseCode: 강좌 코드
-            contain: 강좌 코드 포함 여부
-            flat: 주차별 데이터 그룹화
             close: 세션 종료 여부
 
         Returns:
