@@ -96,31 +96,37 @@ class Extractor(KutisExtractor, LmsExtractor):
 
             # 추출된 데이터 병합
             if attendanceData is not None:
-                # 출석 데이터 튜플 map 생성
-                attendanceMap = {}
-                for weekAttendances in attendanceData:
-                    week = weekAttendances["week"]
-                    for lecture in weekAttendances["attendances"]:
-                        title = lecture["title"]
-                        attendance = lecture["attendance"]
-                        attendanceMap[(week, title)] = attendance
+                # 출석 주차 구분 딕셔너리 생성
+                attendanceDict = {week["week"]: week for week in attendanceData}
 
-                # 활동 데이터에 출석 정보 추가
-                for weekActivities in activityData:
-                    week = weekActivities["week"]
-                    for activity in weekActivities["activities"]:
-                        if (
-                            activity.get("type") == "lecture"
-                            and activity.get("available", False) is True
-                        ):
-                            key = (week, activity["title"])
-                            if key in attendanceMap:
-                                activity["attendance"] = attendanceMap[key]
-                            else:
-                                raise ExtractorException(
-                                    errorType=ErrorType.SCRAPE_ERROR,
-                                    message="강의 정보와 출석 정보가 일치하지 않습니다.",
-                                )
+                for weekActivity in activityData:
+                    week = weekActivity["week"]
+                    if week not in attendanceDict:
+                        continue
+
+                    weekAttendance = attendanceDict[week]
+
+                    # 강의 타입 활동 추출
+                    lectureActivities = [
+                        activity
+                        for activity in weekActivity["activities"]
+                        if activity.get("type") == "lecture"
+                        and activity.get("available", False) is True
+                    ]
+
+                    # 데이터 수 일치 검증
+                    if len(lectureActivities) != len(weekAttendance["attendances"]):
+                        raise ExtractorException(
+                            errorType=ErrorType.SCRAPE_ERROR,
+                            message="강의 수와 출석 수가 일치하지 않습니다.",
+                            data=f"[Activity] - {activityData}\n[Attendance] - {attendanceData}",
+                        )
+
+                    # 출석 데이터 병합
+                    for lecture, attendance in zip(
+                        lectureActivities, weekAttendance["attendances"]
+                    ):
+                        lecture["attendance"] = attendance["attendance"]
 
             # 추출된 데이터 추가
             course.update(

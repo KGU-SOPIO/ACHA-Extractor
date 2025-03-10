@@ -33,11 +33,13 @@ class ExtractorException(Exception):
         errorType: ErrorType,
         message: str | None = None,
         content: BeautifulSoup | None = None,
+        data: str | None = None,
         *args
     ):
         self.type = errorType
         self.message = message or errorType.message
         self.content = content or None
+        self.data = data or None
         super().__init__(self.message, *args)
 
     def logError(self):
@@ -56,6 +58,7 @@ class ExtractorException(Exception):
                 "content": (
                     self.content.prettify() if self.content is not None else None
                 ),
+                "data": self.data,
             },
             exc_info=True,
         )
@@ -76,6 +79,7 @@ class ExtractorException(Exception):
                 "content": (
                     self.content.prettify() if self.content is not None else None
                 ),
+                "data": self.data,
             },
             exc_info=True,
         )
