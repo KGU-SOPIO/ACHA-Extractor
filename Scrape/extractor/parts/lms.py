@@ -303,7 +303,10 @@ class LmsExtractor:
             content = await self._lmsFetch(LMS_COURSE_PAGE_URL.format(courseCode))
             await self._checkAccess(content=content)
 
-            sections = content.find_all("li", id=re.compile(r"section-[1-9]\d*"))
+            sectionContainer = content.find("div", class_="total_sections")
+            sections = sectionContainer.find_all(
+                "li", id=re.compile(r"section-[1-9]\d*")
+            )
 
             # 활동 목록 스크래핑 비동기 처리
             tasks = [
@@ -607,8 +610,8 @@ class LmsExtractor:
                 ["h1", "h2", "h3", "h4", "h5", "h6", "p"], recursive=True
             ):
                 text = element.get_text()
-                if text:
-                    contentList.append(text)
+                if text and text.strip():
+                    contentList.append(text.strip())
 
             noticeData["content"] = "\n".join(contentList)
 
