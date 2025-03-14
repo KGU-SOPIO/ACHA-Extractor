@@ -7,6 +7,10 @@ from bs4 import BeautifulSoup
 class ErrorType(Enum):
     LMS_ERROR = ("LMS 오류", "LMS에 문제가 발생하여 요청을 처리하지 못했습니다.")
     KUTIS_ERROR = ("KUTIS 오류", "KUTIS에 문제가 발생하여 요청을 처리하지 못했습니다.")
+    KUTIS_PASSWORD_ERROR = (
+        "KUTIS 비밀번호 변경 필요 오류",
+        "KUTIS 비밀번호 변경이 필요합니다.",
+    )
     SCHOOL_SYSTEM_ERROR = (
         "학교 시스템 오류",
         "학교 시스템에 문제가 발생하여 요청을 처리하지 못했습니다.",

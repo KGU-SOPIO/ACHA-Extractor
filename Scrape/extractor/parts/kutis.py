@@ -103,6 +103,9 @@ class KutisExtractor:
             async with self.kutisSession.post(
                 KUTIS_LOGIN_URL, data=loginData, allow_redirects=False
             ) as loginResponse:
+                if loginResponse.status == 200:
+                    raise ExtractorException(errorType=ErrorType.KUTIS_PASSWORD_ERROR)
+
                 if loginResponse.status != 302:
                     raise ExtractorException(errorType=ErrorType.AUTHENTICATION_FAIL)
 

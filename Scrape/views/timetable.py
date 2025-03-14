@@ -48,6 +48,10 @@ class TimetableView(GenericAPIView):
                     return Response(
                         {"message": e.message}, status=status.HTTP_404_NOT_FOUND
                     )
+                elif e.type == ErrorType.KUTIS_PASSWORD_ERROR:
+                    return Response(
+                        {"message": e.message}, status=status.HTTP_401_UNAUTHORIZED
+                    )
                 return Response(
                     {"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
