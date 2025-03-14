@@ -1,6 +1,8 @@
 import urllib
 import urllib.parse
 
+from bs4 import BeautifulSoup
+
 from Scrape.extractor.exception import ErrorType, ExtractorException
 
 
@@ -65,6 +67,38 @@ class Utils:
 
         # 대학 소속 전공 판별
         return "", major
+
+    @staticmethod
+    def extractContent(container: BeautifulSoup) -> str:
+        """
+        주어진 HTML 요소에서 텍스트를 추출합니다.
+
+        Parameters:
+            container: BeautifulSoup 객체
+
+        Returns:
+            content: 추출된 텍스트
+        """
+        for lineBreak in container.find_all("br"):
+            lineBreak.replace_with("\n")
+
+        contentList = []
+        elements = container.find_all(
+            ["h1", "h2", "h3", "h4", "h5", "h6", "p", "li"], recursive=True
+        )
+
+        if elements:
+            for element in elements:
+                if element.name == "li":
+                    text = element.get_text(separator=" ", strip=True)
+                else:
+                    text = element.get_text(strip=True)
+                if text:
+                    contentList.append(text)
+        else:
+            contentList.append(container.get_text(strip=True))
+
+        return "\n".join(contentList)
 
     @staticmethod
     def extractCodeFromUrl(url: str, paramName: str) -> str:
