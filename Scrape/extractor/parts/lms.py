@@ -67,6 +67,7 @@ class LmsExtractor:
             else:
                 return False
 
+    @retryOnTimeout()
     async def _getLmsSession(self):
         """
         lmsSession 인스턴스 변수에 LMS 인증 세션을 할당합니다.

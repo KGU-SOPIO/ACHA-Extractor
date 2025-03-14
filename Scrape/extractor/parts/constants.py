@@ -19,4 +19,9 @@ LMS_ATTENDANCE_PAGE_URL = (
 LMS_BOARD_PAGE_URL = "https://lms.kyonggi.ac.kr/mod/ubboard/view.php?id={}"
 LMS_ASSIGNMENT_PAGE_URL = "https://lms.kyonggi.ac.kr/mod/assign/view.php?id={}"
 
-LMS_ACTIVITY_TYPES = {"xncommons": "lecture", "assign": "assignment", "url": "url"}
+LMS_ACTIVITY_TYPES = {
+    "xncommons": "lecture",
+    "assign": "assignment",
+    "url": "url",
+    "ubfile": "file",
+}
