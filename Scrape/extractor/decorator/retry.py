@@ -31,7 +31,7 @@ def retryOnTimeout(
                             ):
                                 shouldRetry = True
                         else:
-                            if e.errorType in (
+                            if e.type in (
                                 ErrorType.LMS_ERROR,
                                 ErrorType.KUTIS_ERROR,
                                 ErrorType.SYSTEM_ERROR,
