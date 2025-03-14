@@ -549,7 +549,7 @@ class LmsExtractor:
             # 추가 정보 삽입
             for index, notice in enumerate(noticeList):
                 notice["index"] = (
-                    notices[index].find_all("td")[0].text.strip() or "중요"
+                    notices[index].find_all("td")[0].text.strip() or "9999"
                 )
                 notice["title"] = notices[index].find("a").text.strip()
                 notice["professor"] = notices[index].find_all("td")[2].text.strip()
