@@ -459,9 +459,7 @@ class LmsExtractor:
 
             # 과제 설명 스크래핑
             descriptionContainer = assignmentContainer.find("div", id="intro")
-            description = " ".join(
-                descriptionContainer.get_text(separator="", strip=True).split()
-            )
+            description = Utils.extractContent(container=descriptionContainer)
 
             # 과제 정보 스크래핑
             table = assignmentContainer.find("table", class_="generaltable").find_all(
@@ -587,7 +585,7 @@ class LmsExtractor:
             # 공지사항 객체 생성
             noticeData = {"link": link}
 
-            # 공지사항 첨부 파일 스크래핑
+            # 파일 추출
             fileContainer = content.find("ul", class_="files")
             if fileContainer:
                 noticeData["files"] = [
@@ -598,23 +596,9 @@ class LmsExtractor:
                     for file in fileContainer.find_all("li")
                 ]
 
-            # 공지사항 내용 스크래핑
-            contentList = []
+            # 공지사항 텍스트 추출
             container = content.find("div", class_="text_to_html")
-
-            # 줄바꿈 br 태그 변경
-            for lineBreak in container.find_all("br"):
-                lineBreak.replace_with("\n")
-
-            # 텍스트 추출
-            for element in container.find_all(
-                ["h1", "h2", "h3", "h4", "h5", "h6", "p"], recursive=True
-            ):
-                text = element.get_text()
-                if text and text.strip():
-                    contentList.append(text.strip())
-
-            noticeData["content"] = "\n".join(contentList)
+            noticeData["content"] = Utils.extractContent(container=container)
 
             return noticeData
 
