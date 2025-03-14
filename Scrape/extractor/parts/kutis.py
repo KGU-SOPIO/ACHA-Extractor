@@ -72,6 +72,7 @@ class KutisExtractor:
         except Exception as e:
             raise ExtractorException(errorType=ErrorType.SCRAPE_ERROR) from e
 
+    @retryOnTimeout()
     async def _getKutisSession(self):
         """
         kutisSession 인스턴스 변수에 KUTIS 인증 세션을 할당합니다.

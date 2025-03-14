@@ -20,16 +20,25 @@ def retryOnTimeout(
                 except ExtractorException as e:
                     lastException = e
                     cause = e.__cause__
-                    if (
-                        attempt < maxRetries - 1
-                        and cause
-                        and (
-                            isinstance(
+                    shouldRetry = False
+
+                    if attempt < maxRetries - 1:
+                        if cause:
+                            if isinstance(
                                 cause, (asyncio.TimeoutError, aiohttp.ClientTimeout)
-                            )
-                            or (hasattr(cause, "status") and 500 <= cause.status < 600)
-                        )
-                    ):
+                            ) or (
+                                hasattr(cause, "status") and 500 <= cause.status < 600
+                            ):
+                                shouldRetry = True
+                        else:
+                            if e.errorType in (
+                                ErrorType.LMS_ERROR,
+                                ErrorType.KUTIS_ERROR,
+                                ErrorType.SYSTEM_ERROR,
+                            ):
+                                shouldRetry = True
+
+                    if shouldRetry:
                         await asyncio.sleep(delay)
                         delay *= backoffFactor
                         continue
