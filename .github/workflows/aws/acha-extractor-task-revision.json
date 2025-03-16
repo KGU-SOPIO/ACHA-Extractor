@@ -11,6 +11,12 @@
                     "hostPort": 80,
                     "protocol": "tcp",
                     "appProtocol": "http"
+                },
+                {
+                    "name": "extractor-90-tcp",
+                    "containerPort": 80,
+                    "hostPort": 90,
+                    "protocol": "tcp"
                 }
             ],
             "essential": true,
