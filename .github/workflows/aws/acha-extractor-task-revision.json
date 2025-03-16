@@ -11,12 +11,6 @@
                     "hostPort": 80,
                     "protocol": "tcp",
                     "appProtocol": "http"
-                },
-                {
-                    "name": "extractor-90-tcp",
-                    "containerPort": 90,
-                    "hostPort": 90,
-                    "protocol": "tcp"
                 }
             ],
             "essential": true,
@@ -58,7 +52,7 @@
         "FARGATE"
     ],
     "cpu": "256",
-    "memory": "512",
+    "memory": "1024",
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
