@@ -31,4 +31,4 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 RUN python manage.py collectstatic --noinput
 
-EXPOSE 80
+EXPOSE 80 90

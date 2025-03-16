@@ -14,7 +14,7 @@
                 },
                 {
                     "name": "extractor-90-tcp",
-                    "containerPort": 80,
+                    "containerPort": 90,
                     "hostPort": 90,
                     "protocol": "tcp"
                 }
