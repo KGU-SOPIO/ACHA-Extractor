@@ -45,19 +45,25 @@ class ExtractorHandler(logging.Handler):
         self.streamHandler.emit(record=record)
 
 
-class AnalystHandler(logging.Handler):
+class PerformanceHandler(logging.Handler):
     def __init__(self, discordUrl: str):
         super().__init__()
         self.discordUrl = discordUrl
 
     def emit(self, record: logging.LogRecord):
-        entry = self.format(record=record)
         embed = Embed(
-            title="Extractor Info",
-            description=entry,
+            title="Extractor Performance",
             timestamp=datetime.now(),
             color=Colour.blue(),
         )
+        if hasattr(record, "path"):
+            embed.add_field(name="Path", value=record.path, inline=False)
+        if hasattr(record, "method"):
+            embed.add_field(name="Method", value=record.method, inline=True)
+        if hasattr(record, "status"):
+            embed.add_field(name="Status", value=record.status, inline=True)
+        if hasattr(record, "time"):
+            embed.add_field(name="Time", value=record.time, inline=True)
         embed.set_footer(text="Extractor")
 
         webhook = SyncWebhook.from_url(url=self.discordUrl)
