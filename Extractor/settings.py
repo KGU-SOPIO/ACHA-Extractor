@@ -66,6 +66,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "Extractor.middleware.PerformanceMiddleware",
 ]
 
 ROOT_URLCONF = "Extractor.urls"
@@ -156,11 +157,11 @@ LOGGING = {
         },
     },
     "handlers": {
-        "info": {
+        "performance": {
             "level": "INFO",
             "formatter": "info",
             "filters": ["require_debug_false"],
-            "class": "Extractor.handlers.AnalystHandler",
+            "class": "Extractor.handlers.PerformanceHandler",
             "discordUrl": env("INFO_DISCORDURL"),
         },
         "warning": {
@@ -172,7 +173,11 @@ LOGGING = {
         },
     },
     "loggers": {
-        "analyst": {"handlers": ["info"], "level": "INFO", "propagate": False},
+        "performance": {
+            "handlers": ["performance"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "watchmen": {"handlers": ["warning"], "level": "WARNING", "propagate": False},
     },
 }
