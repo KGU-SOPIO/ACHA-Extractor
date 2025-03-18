@@ -1,18 +1,18 @@
 services:
   extractor:
-    build:
-      context: ../
-      dockerfile: ./Dockerfile
+    image: sopio/acha-extractor:latest
     container_name: extractor
     working_dir: /app
-    environment:
-      - SECRET_KEY=SECRET_KEY
-      - ALLOWED_HOSTS=*
-      - INFO_DISCORDURL=INFO_DISCORDURL
-      - WARNING_DISCORDURL=WARNING_DISCORDURL
+    volumes:
+      - /home/ubuntu/app/static:/static
     command: >
-      sh -c "python manage.py makemigrations &&
-        python manage.py migrate &&
-        gunicorn Extractor.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile -"
+      sh -c "gunicorn Extractor.wsgi:application --workers 3 --threads 4 --preload --bind 0.0.0.0:8000"
     ports:
       - "8000:8000"
+    networks:
+      - extractor-network
+
+networks:
+  extractor-network:
+    driver: bridge
+    external: true

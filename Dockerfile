@@ -13,10 +13,10 @@ RUN apt-get update && apt-get install -y \
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-ARG SECRET_KEY
-ARG ALLOWED_HOSTS
-ARG INFO_DISCORDURL
-ARG WARNING_DISCORDURL
+ARG SECRET_KEY \
+    ALLOWED_HOSTS \
+    INFO_DISCORDURL \
+    WARNING_DISCORDURL
 
 ENV SECRET_KEY=${SECRET_KEY} \
     ALLOWED_HOSTS=${ALLOWED_HOSTS} \
@@ -27,8 +27,10 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    python manage.py collectstatic --noinput && \
+    python manage.py makemigrations && \
+    python manage.py migrate
 
-RUN python manage.py collectstatic --noinput
-
-EXPOSE 80
+EXPOSE 8000
