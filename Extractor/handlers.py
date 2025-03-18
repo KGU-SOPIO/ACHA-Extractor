@@ -1,4 +1,5 @@
 import logging
+import os
 import traceback
 from datetime import datetime
 
@@ -10,6 +11,8 @@ class ExtractorHandler(logging.Handler):
         super().__init__()
         self.discordUrl = discordUrl
         self.logPath = logPath
+
+        os.makedirs(os.path.dirname(self.logPath), exist_ok=True)
         self.fileHandler = logging.FileHandler(self.logPath)
 
     def emit(self, record: logging.LogRecord):
