@@ -163,7 +163,6 @@ LOGGING = {
             "filters": ["require_debug_false"],
             "class": "Extractor.handlers.PerformanceHandler",
             "discordUrl": env("INFO_DISCORDURL"),
-            "logPath": env("LOG_PATH"),
         },
         "warning": {
             "level": "WARNING",
@@ -171,6 +170,7 @@ LOGGING = {
             "filters": ["require_debug_false"],
             "class": "Extractor.handlers.ExtractorHandler",
             "discordUrl": env("WARNING_DISCORDURL"),
+            "logPath": env("LOG_PATH"),
         },
     },
     "loggers": {
