@@ -32,8 +32,8 @@ jobs:
           --build-arg ALLOWED_HOSTS=$ALLOWED_HOSTS \
           --build-arg INFO_DISCORDURL=$INFO_DISCORDURL \
           --build-arg WARNING_DISCORDURL=$WARNING_DISCORDURL \
-          -t ${{ secrets.DOCKERHUB_USERNAME }}/extractor:latest .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/extractor:latest
+          -t ${{ secrets.DOCKERHUB_USERNAME }}/acha-extractor:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/acha-extractor:latest
 
   deploy:
     name: Deploy
