@@ -6,10 +6,11 @@ from discord import Colour, Embed, SyncWebhook
 
 
 class ExtractorHandler(logging.Handler):
-    def __init__(self, discordUrl: str):
+    def __init__(self, discordUrl: str, logPath: str):
         super().__init__()
         self.discordUrl = discordUrl
-        self.streamHandler = logging.StreamHandler()
+        self.logPath = logPath
+        self.fileHandler = logging.FileHandler(self.logPath)
 
     def emit(self, record: logging.LogRecord):
         excInfo = record.exc_info
@@ -42,7 +43,7 @@ class ExtractorHandler(logging.Handler):
 
         record.msg = f"{record.getMessage()}\n" + "\n".join(details)
 
-        self.streamHandler.emit(record=record)
+        self.fileHandler.emit(record=record)
 
 
 class PerformanceHandler(logging.Handler):
