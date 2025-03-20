@@ -1,3 +1,5 @@
+from Scrape.extractor.exception.exception import ErrorType
+
 KUTIS_LOGIN_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/hs/wslogin/loginCheck.jsp"
 KUTIS_LOGIN_PAGE_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/indexWeb.jsp"
 KUTIS_MAIN_PAGE_URL = "https://kutis.kyonggi.ac.kr/webkutis/view/main/mypage.jsp?flag=2"
@@ -25,3 +27,11 @@ LMS_ACTIVITY_TYPES = {
     "url": "url",
     "ubfile": "file",
 }
+
+EXCEPT_ERROR_TYPES = (
+    ErrorType.AUTHENTICATION_FAIL,
+    ErrorType.INVALID_ACCESS,
+    ErrorType.COURSE_NOT_EXIST,
+    ErrorType.TIMETABLE_NOT_EXIST,
+    ErrorType.KUTIS_PASSWORD_ERROR,
+)

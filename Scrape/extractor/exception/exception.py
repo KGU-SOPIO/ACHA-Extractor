@@ -3,6 +3,8 @@ from enum import Enum
 
 from bs4 import BeautifulSoup
 
+from Scrape.extractor.parts.constants import EXCEPT_ERROR_TYPES
+
 
 class ErrorType(Enum):
     LMS_ERROR = ("LMS 오류", "LMS에 문제가 발생하여 요청을 처리하지 못했습니다.")
@@ -47,12 +49,7 @@ class ExtractorException(Exception):
         super().__init__(self.message, *args)
 
     def logError(self):
-        if self.type in (
-            ErrorType.AUTHENTICATION_FAIL,
-            ErrorType.INVALID_ACCESS,
-            ErrorType.COURSE_NOT_EXIST,
-            ErrorType.TIMETABLE_NOT_EXIST,
-        ):
+        if self.type in EXCEPT_ERROR_TYPES:
             return
         logger = logging.getLogger("watchmen")
         logger.error(
@@ -68,12 +65,7 @@ class ExtractorException(Exception):
         )
 
     def logWarning(self):
-        if self.type in (
-            ErrorType.AUTHENTICATION_FAIL,
-            ErrorType.INVALID_ACCESS,
-            ErrorType.COURSE_NOT_EXIST,
-            ErrorType.TIMETABLE_NOT_EXIST,
-        ):
+        if self.type in EXCEPT_ERROR_TYPES:
             return
         logger = logging.getLogger("watchmen")
         logger.warning(
