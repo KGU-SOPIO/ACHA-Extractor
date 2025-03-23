@@ -61,11 +61,11 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            export SECRET_KEY=${{ secrets.SECRET_KEY }}
-            export ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
-            export INFO_DISCORDURL=${{ secrets.INFO_DISCORDURL }}
-            export WARNING_DISCORDURL=${{ secrets.WARNING_DISCORDURL }}
-            export LOG_PATH=${{ secrets.LOG_PATH }}
+            export SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            export ALLOWED_HOSTS="${{ secrets.ALLOWED_HOSTS }}"
+            export INFO_DISCORDURL="${{ secrets.INFO_DISCORDURL }}"
+            export WARNING_DISCORDURL="${{ secrets.WARNING_DISCORDURL }}"
+            export LOG_PATH="${{ secrets.LOG_PATH }}"
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
             docker-compose -f /home/ubuntu/app/docker-compose.prod.yml pull
             docker-compose -f /home/ubuntu/app/docker-compose.prod.yml up --pull always --no-deps -d
