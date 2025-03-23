@@ -29,13 +29,7 @@ jobs:
           WARNING_DISCORDURL: ${{ secrets.WARNING_DISCORDURL }}
           LOG_PATH: ${{ secrets.LOG_PATH }}
         run: |
-          docker build \
-          --build-arg SECRET_KEY=$SECRET_KEY \
-          --build-arg ALLOWED_HOSTS=$ALLOWED_HOSTS \
-          --build-arg INFO_DISCORDURL=$INFO_DISCORDURL \
-          --build-arg WARNING_DISCORDURL=$WARNING_DISCORDURL \
-          --build-arg LOG_PATH=$LOG_PATH \
-          -t ${{ secrets.DOCKERHUB_USERNAME }}/acha-extractor:latest .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/acha-extractor:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/acha-extractor:latest
 
   deploy:
@@ -55,7 +49,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: docker/docker-compose.yml
+          source: docker/docker-compose.prod.yml
           target: /home/ubuntu/app/
           strip_components: 1
 
@@ -68,5 +62,10 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+            export SECRET_KEY=${{ secrets.SECRET_KEY }}
+            export ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
+            export INFO_DISCORDURL=${{ secrets.INFO_DISCORDURL }}
+            export WARNING_DISCORDURL=${{ secrets.WARNING_DISCORDURL }}
+            export LOG_PATH=${{ secrets.LOG_PATH }}
             docker-compose -f /home/ubuntu/app/docker-compose.yml pull
             docker-compose -f /home/ubuntu/app/docker-compose.yml up --pull always --no-deps -d

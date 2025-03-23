@@ -13,26 +13,15 @@ RUN apt-get update && apt-get install -y \
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-ARG SECRET_KEY \
-    ALLOWED_HOSTS \
-    INFO_DISCORDURL \
-    WARNING_DISCORDURL \
-    LOG_PATH
-
-ENV SECRET_KEY=${SECRET_KEY} \
-    ALLOWED_HOSTS=${ALLOWED_HOSTS} \
-    INFO_DISCORDURL=${INFO_DISCORDURL} \
-    WARNING_DISCORDURL=${WARNING_DISCORDURL} \
-    LOG_PATH=${LOG_PATH}
-
 WORKDIR /app
 
 COPY . .
 
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    python manage.py collectstatic --noinput && \
-    python manage.py makemigrations && \
-    python manage.py migrate
+    pip install -r requirements.txt
+
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
+
+ENTRYPOINT [ "/app/entrypoint.sh" ]
