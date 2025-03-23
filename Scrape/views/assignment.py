@@ -35,7 +35,7 @@ class AssignmentView(GenericAPIView):
             try:
                 extractor = Extractor(studentId=studentId, password=password)
                 assignment = asyncio.run(
-                    extractor.getCourseAssignment(assignmentCode=assignmentCode)
+                    extractor.getAssignment(assignmentCode=assignmentCode)
                 )
 
                 return Response({"data": assignment}, status=status.HTTP_200_OK)

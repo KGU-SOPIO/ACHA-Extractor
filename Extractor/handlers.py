@@ -55,10 +55,21 @@ class PerformanceHandler(logging.Handler):
         self.discordUrl = discordUrl
 
     def emit(self, record: logging.LogRecord):
+        if hasattr(record, "time"):
+            time = float(record.time)
+            if time > 2000:
+                embedColor = Colour.red()
+            elif time > 1500:
+                embedColor = Colour.orange()
+            else:
+                embedColor = Colour.blue()
+        else:
+            embedColor = Colour.blue()
+
         embed = Embed(
             title="Extractor Performance",
             timestamp=datetime.now(),
-            color=Colour.blue(),
+            color=embedColor,
         )
         if hasattr(record, "path"):
             embed.add_field(name="Path", value=record.path, inline=False)

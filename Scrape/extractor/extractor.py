@@ -65,6 +65,7 @@ class Extractor(KutisExtractor, LmsExtractor):
             course: 스크래핑 데이터 추가된 강좌 정보
         """
         try:
+            # 페이지 요청
             content = await self._lmsFetch(course["link"])
 
             # 접근 권한 검증

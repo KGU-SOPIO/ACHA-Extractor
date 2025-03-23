@@ -31,6 +31,7 @@ class ExtractorException(Exception):
     def logError(self):
         if self.type in EXCEPT_ERROR_TYPES:
             return
+
         logger = logging.getLogger("watchmen")
         logger.error(
             self.message,
@@ -47,6 +48,7 @@ class ExtractorException(Exception):
     def logWarning(self):
         if self.type in EXCEPT_ERROR_TYPES:
             return
+
         logger = logging.getLogger("watchmen")
         logger.warning(
             self.message,
