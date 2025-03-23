@@ -158,8 +158,10 @@ class LmsExtractor:
             userData: 사용자 정보
         """
         try:
+            # 페이지 요청
             content = await self._lmsFetch(LMS_USER_PAGE_URL)
 
+            # 사용자 데이터 생성
             userData = {}
             userData["name"] = content.find("input", id="id_firstname").get("value")
             userData["college"] = content.find("input", id="id_institution").get(
@@ -200,14 +202,16 @@ class LmsExtractor:
                 LMS_PAST_COURSE_PAGE_URL.format(year, semester * 10)
             )
 
+            # 요소 선택
             courseContainer = content.find("div", class_="course_lists")
             courseTable = courseContainer.find("tbody", class_="my-course-lists")
             courses = courseTable.find_all("tr")
 
-            # 강좌 목록 확인
+            # 강좌 존재 확인
             if not courses or courses[0].find("td", colspan="5"):
                 raise ExtractorException(errorType=ErrorType.COURSE_NOT_EXIST)
 
+            # 강좌 목록 생성
             courseList = []
             for course in courses:
                 columns = course.find_all("td")
@@ -252,13 +256,15 @@ class LmsExtractor:
             content = await self._lmsFetch(LMS_MAIN_PAGE_URL)
             await self._checkAccess(content=content)
 
+            # 요소 선택
             courseContainer = content.find("div", class_="course_lists")
             courses = courseContainer.find_all("li", class_="course_label_re")
 
-            # 강좌 목록 확인
+            # 강좌 존재 확인
             if not courses:
                 raise ExtractorException(errorType=ErrorType.COURSE_NOT_EXIST)
 
+            # 강좌 목록 생성
             courseList = [
                 {
                     "title": course.find("h3").text.strip().split("(")[0].strip(),
@@ -304,6 +310,7 @@ class LmsExtractor:
             content = await self._lmsFetch(LMS_COURSE_PAGE_URL.format(courseCode))
             await self._checkAccess(content=content)
 
+            # 요소 선택
             sectionContainer = content.find("div", class_="total_sections")
             sections = sectionContainer.find_all(
                 "li", id=re.compile(r"section-[1-9]\d*")
@@ -370,7 +377,7 @@ class LmsExtractor:
                 # 제목 스크래핑
                 titleElement = activity.find("span", class_="instancename")
                 if titleElement:
-                    # 자식 요소 제거
+                    # 불필요한 자식 요소 제거
                     childElement = titleElement.find("span", class_="accesshide")
                     if childElement:
                         childElement.extract()
@@ -414,7 +421,7 @@ class LmsExtractor:
             if tasks:
                 results = await asyncio.gather(
                     *[
-                        self.getCourseAssignment(assignmentCode=code, close=False)
+                        self.getAssignment(assignmentCode=code, close=False)
                         for code, _ in tasks
                     ]
                 )
@@ -435,9 +442,7 @@ class LmsExtractor:
                 errorType=ErrorType.SCRAPE_ERROR, content=content
             ) from e
 
-    async def getCourseAssignment(
-        self, assignmentCode: str, close: bool = True
-    ) -> dict:
+    async def getAssignment(self, assignmentCode: str, close: bool = True) -> dict:
         """
         과제 정보를 스크래핑합니다.
 
@@ -455,6 +460,7 @@ class LmsExtractor:
             )
             await self._checkAccess(content=content)
 
+            # 요소 선택
             assignmentContainer = content.find("div", id="region-main")
 
             # 과제 설명 스크래핑
@@ -473,6 +479,7 @@ class LmsExtractor:
                 else table[1:5]
             )
 
+            #
             keys = ["gradingStatus", "deadline", "timeLeft", "lastModified"]
             values = [row.find_all("td")[1].get_text(strip=True) for row in rows]
 
@@ -526,6 +533,7 @@ class LmsExtractor:
             content = await self._lmsFetch(LMS_BOARD_PAGE_URL.format(boardCode))
             await self._checkAccess(content=content)
 
+            # 요소 선택
             container = content.find("tbody")
 
             # 공지사항 목록 확인
@@ -630,6 +638,7 @@ class LmsExtractor:
             if await self._checkAccess(content=content, exception=False) is False:
                 return None
 
+            # 요소 선택
             table = content.select("table.user_progress_table tbody tr")
 
             attendanceData = []
