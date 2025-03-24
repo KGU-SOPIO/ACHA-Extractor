@@ -58,7 +58,7 @@ class PerformanceHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord):
         if hasattr(record, "time"):
-            time = float(record.time)
+            time = int(record.time)
             if time > 1500:
                 embedColor = Colour.red()
             elif time > 1000:
