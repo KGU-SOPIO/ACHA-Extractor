@@ -161,7 +161,8 @@ LOGGING = {
             "level": "INFO",
             "formatter": "warning",
             "filters": ["require_debug_false"],
-            "class": "logging.StreamHandler",
+            "class": "logging.FileHandler",
+            "filename": "/app/logs/extractor.log",
         },
         "performance": {
             "level": "INFO",
