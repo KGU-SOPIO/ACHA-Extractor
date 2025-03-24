@@ -157,6 +157,12 @@ LOGGING = {
         },
     },
     "handlers": {
+        "system": {
+            "level": "INFO",
+            "formatter": "warning",
+            "filters": ["require_debug_false"],
+            "class": "logging.StreamHandler",
+        },
         "performance": {
             "level": "INFO",
             "formatter": "info",
@@ -174,12 +180,20 @@ LOGGING = {
         },
     },
     "loggers": {
-        "django": {"handlers": ["warning"], "level": "WARNING", "propagate": False},
+        "django": {
+            "handlers": ["system"],
+            "level": "WARNING",
+            "propagate": False,
+        },
         "performance": {
             "handlers": ["performance"],
             "level": "INFO",
             "propagate": False,
         },
-        "watchmen": {"handlers": ["warning"], "level": "WARNING", "propagate": False},
+        "watchmen": {
+            "handlers": ["warning"],
+            "level": "WARNING",
+            "propagate": False,
+        },
     },
 }
