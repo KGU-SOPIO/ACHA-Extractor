@@ -170,10 +170,11 @@ LOGGING = {
             "filters": ["require_debug_false"],
             "class": "Extractor.handlers.ExtractorHandler",
             "discordUrl": env("WARNING_DISCORDURL"),
-            "logPath": env("LOG_PATH"),
+            "logPath": "/app/logs/extractor.log",
         },
     },
     "loggers": {
+        "django": {"handlers": ["warning"], "level": "WARNING", "propagate": False},
         "performance": {
             "handlers": ["performance"],
             "level": "INFO",
