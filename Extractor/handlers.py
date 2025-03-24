@@ -80,7 +80,7 @@ class PerformanceHandler(logging.Handler):
         if hasattr(record, "status"):
             embed.add_field(name="Status", value=record.status, inline=True)
         if hasattr(record, "time"):
-            embed.add_field(name="Time", value=record.time, inline=True)
+            embed.add_field(name="Time", value=int(record.time), inline=True)
         embed.set_footer(text="Extractor")
 
         webhook = SyncWebhook.from_url(url=self.discordUrl)
