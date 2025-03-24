@@ -12,6 +12,7 @@ services:
       - LOG_PATH=${LOG_PATH}
     volumes:
       - /home/ubuntu/app/static:/static
+      - ${LOG_PATH}:/app/logs
     command: >
       sh -c "gunicorn Extractor.wsgi:application --workers 3 --threads 4 --preload --bind 0.0.0.0:8000"
     ports:
