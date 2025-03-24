@@ -21,7 +21,7 @@ class PerformanceMiddleware:
                 extra={
                     "method": request.method,
                     "path": request.path,
-                    "time": f"{elapsedTime}ms",
+                    "time": elapsedTime,
                     "status": response.status_code,
                 },
             )
