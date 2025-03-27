@@ -9,7 +9,6 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - INFO_DISCORDURL=${INFO_DISCORDURL}
       - WARNING_DISCORDURL=${WARNING_DISCORDURL}
-      - LOG_PATH=${LOG_PATH}
     volumes:
       - /home/ubuntu/app/static:/static
       - ${LOG_PATH}:/app/logs

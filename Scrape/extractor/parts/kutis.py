@@ -150,10 +150,9 @@ class KutisExtractor:
         """
         KUTIS에서 시간표를 스크래핑합니다.
 
-        ! rowspan으로 인한 비정확한 요일 수집 가능성, 문제 해결 필요
-            -> 1 ~ 3교시(오전), 4 ~ 5교시, 6 ~ 7교시(오후) 시간대 외 수업 시간이 존재하는지 확인 필요
-                : 존재하지 않으면 해결 필요 없음
-            -> 문제 없음, QA 추가 검증 진행
+        ! rowspan으로 인한 비정확한 시간표 수집 문제
+            - 1 ~ 3교시(오전), 4 ~ 5교시, 6 ~ 7교시(오후) 시간대 외 수업 시간이 존재하면 문제 발생
+                -> 2차원 그리드 방식을 사용하여 문제 해결 완료
 
         Parameters:
             year: 추출 연도
@@ -183,32 +182,73 @@ class KutisExtractor:
 
             classes = []
             days = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-            period = 0
+
+            # 테이블 2차원 그리드 확장
+            grid = []
+            rowspanTracker = {}
 
             # 시간표 정보 추출
             rows = timetable.find_all("tr")
-            for rowIndex in range(1, len(rows), 2):
-                period += 1
+            timetableRows = rows[1:]
+            totalColumns = 7
 
-                columns = rows[rowIndex].find_all(["th", "td"])
-                for colIndex, col in enumerate(columns):
-                    if col.name == "th":
-                        classTime = int(col.get("rowspan")) // 2
-                        title, identifier, professor, lectureRoom = col.get_text(
-                            separator="<br>", strip=True
-                        ).split("<br>")
-                        classes.append(
-                            {
-                                "title": title,
-                                "identifier": identifier,
-                                "professor": professor,
-                                "lectureRoom": lectureRoom,
-                                "day": days[colIndex - 1],
-                                "classTime": classTime,
-                                "startAt": period,
-                                "endAt": period + classTime - 1,
-                            }
-                        )
+            for r, row in enumerate(timetableRows):
+                currentRow = []
+                rowCells = row.find_all(["th", "td"])
+                cellIndex = 0
+                colIndex = 0
+                while colIndex < totalColumns:
+                    if colIndex in rowspanTracker:
+                        cell, origin, remaining = rowspanTracker[colIndex]
+                        currentRow.append((cell, origin))
+                        if remaining - 1 > 0:
+                            rowspanTracker[colIndex] = (cell, origin, remaining - 1)
+                        else:
+                            del rowspanTracker[colIndex]
+                        colIndex += 1
+                    else:
+                        if cellIndex < len(rowCells):
+                            cell = rowCells[cellIndex]
+                            cellIndex += 1
+                            currentRow.append((cell, r))
+                            if cell.has_attr("rowspan"):
+                                try:
+                                    span = int(cell["rowspan"])
+                                except ValueError:
+                                    span = 1
+                                if span > 1:
+                                    rowspanTracker[colIndex] = (cell, r, span - 1)
+                            colIndex += 1
+                        else:
+                            currentRow.append((None, r))
+                            colIndex += 1
+                grid.append(currentRow)
+
+            for r, row in enumerate(grid):
+                timeCell, _ = row[0]
+                periodText = timeCell.get_text(strip=True)
+                period = int(periodText)
+
+                for col in range(1, totalColumns):
+                    cell, origin = row[col]
+                    if cell and cell.name == "th" and r == origin:
+                        cellText = cell.get_text(separator="<br>", strip=True)
+                        parts = cellText.split("<br>")
+                        if len(parts) >= 4:
+                            title, identifier, professor, lectureRoom = parts[:4]
+                            classTime = int(cell["rowspan"]) // 2
+                            classes.append(
+                                {
+                                    "title": title,
+                                    "identifier": identifier,
+                                    "professor": professor,
+                                    "lectureRoom": lectureRoom,
+                                    "day": days[col - 1],
+                                    "classTime": classTime,
+                                    "startAt": period,
+                                    "endAt": period + classTime - 1,
+                                }
+                            )
 
             return classes
 
