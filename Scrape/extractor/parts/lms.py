@@ -366,11 +366,8 @@ class LmsExtractor:
                 if not activityType:
                     continue
 
-                # 활성 상태
+                # 활동 데이터
                 activityData = {
-                    "available": (
-                        False if activity.find("div", class_="availability") else True
-                    ),
                     "type": activityType,
                 }
 
@@ -384,6 +381,7 @@ class LmsExtractor:
                     activityData["title"] = titleElement.text.strip()
 
                 # 활동 링크 및 코드 스크래핑
+                activityLink = None
                 linkElement = activity.find("a")
                 if linkElement:
                     activityLink = linkElement.get("href")
@@ -391,6 +389,13 @@ class LmsExtractor:
                     activityData["code"] = Utils.extractCodeFromUrl(
                         url=activityLink, paramName="id"
                     )
+
+                # 활성 상태
+                activityData["available"] = (
+                    False
+                    if activity.find("div", class_="availability") or not activityLink
+                    else True
+                )
 
                 # 과제 유형 비동기 작업 추가
                 if activityType == "assignment" and activityData["available"] == True:
