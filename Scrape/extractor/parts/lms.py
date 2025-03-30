@@ -598,7 +598,7 @@ class LmsExtractor:
             if fileContainer:
                 noticeData["files"] = [
                     {
-                        "name": file.find("a").text.strip(),
+                        "title": file.find("a").text.strip(),
                         "link": file.find("a").get("href"),
                     }
                     for file in fileContainer.find_all("li")
