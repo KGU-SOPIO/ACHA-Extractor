@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 
 class FileItemSerializer(serializers.Serializer):
-    name = serializers.CharField()
+    title = serializers.CharField()
     link = serializers.CharField()
 
 
