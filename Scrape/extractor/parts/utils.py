@@ -84,7 +84,7 @@ class Utils:
 
         contentList = []
         elements = container.find_all(
-            ["h1", "h2", "h3", "h4", "h5", "h6", "p", "li"], recursive=True
+            ["h1", "h2", "h3", "h4", "h5", "h6", "p", "div", "li"], recursive=True
         )
 
         if elements:
