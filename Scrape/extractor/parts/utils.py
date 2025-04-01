@@ -80,7 +80,7 @@ class Utils:
             content: 추출된 텍스트
         """
         for lineBreak in container.find_all("br"):
-            lineBreak.replace_with("\n")
+            lineBreak.replace_with("[BR]")
 
         contentList = []
         elements = container.find_all(
@@ -98,7 +98,8 @@ class Utils:
         else:
             contentList.append(container.get_text(strip=True))
 
-        return "\n".join(contentList)
+        content = "\n".join(contentList)
+        return content.replace("[BR]", "")
 
     @staticmethod
     def extractCodeFromUrl(url: str, paramName: str) -> str:
