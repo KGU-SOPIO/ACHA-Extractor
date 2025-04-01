@@ -470,7 +470,11 @@ class LmsExtractor:
 
             # 과제 설명 스크래핑
             descriptionContainer = assignmentContainer.find("div", id="intro")
-            description = Utils.extractContent(container=descriptionContainer)
+            childContainer = descriptionContainer.find("div", class_="no-overflow")
+            if childContainer:
+                description = Utils.extractContent(container=childContainer)
+            else:
+                description = Utils.extractContent(container=descriptionContainer)
 
             # 과제 정보 스크래핑
             table = assignmentContainer.find("table", class_="generaltable").find_all(
