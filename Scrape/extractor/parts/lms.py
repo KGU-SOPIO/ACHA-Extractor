@@ -483,13 +483,18 @@ class LmsExtractor:
 
             # 팀 필드 존재 검증
             rows = (
-                table[2:6]
+                table[1:6]
                 if table[0].find_all("td")[0].get_text(strip=True) == "팀"
-                else table[1:5]
+                else table[0:5]
             )
 
-            #
-            keys = ["gradingStatus", "deadline", "timeLeft", "lastModified"]
+            keys = [
+                "submitStatus",
+                "gradingStatus",
+                "deadline",
+                "timeLeft",
+                "lastModified",
+            ]
             values = [row.find_all("td")[1].get_text(strip=True) for row in rows]
 
             # 과제 정보 객체 생성
@@ -497,20 +502,23 @@ class LmsExtractor:
             assignmentData["description"] = description
 
             # 과제 제출 상태 추가
-            timeLeft = assignmentData.get("timeLeft")
-            submitStatus = {
-                "빨랐습니다": "done",
-                "늦었습니다": "late",
-                "마감이 지난": "miss",
-            }
-            assignmentData["submitStatus"] = next(
-                (
-                    status
-                    for keyword, status in submitStatus.items()
-                    if keyword in timeLeft
-                ),
-                "none",
-            )
+            if assignmentData.get("submitStatus") == "제출 완료":
+                assignmentData["submitStatus"] = "done"
+            else:
+                timeLeft = assignmentData.get("timeLeft")
+                submitType = {
+                    "빨랐습니다": "done",
+                    "늦었습니다": "late",
+                    "마감이 지난": "miss",
+                }
+                assignmentData["submitStatus"] = next(
+                    (
+                        status
+                        for keyword, status in submitType.items()
+                        if keyword in timeLeft
+                    ),
+                    "none",
+                )
 
             return assignmentData
 
