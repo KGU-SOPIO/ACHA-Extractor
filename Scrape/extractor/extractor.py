@@ -110,10 +110,7 @@ class Extractor(KutisExtractor, LmsExtractor):
                 for weekActivities in activityData:
                     week = weekActivities["week"]
                     for activity in weekActivities["activities"]:
-                        if (
-                            activity.get("type") == "lecture"
-                            and activity.get("available", False) is True
-                        ):
+                        if activity.get("type") == "lecture":
                             key = (week, activity["title"])
                             if key in attendanceMap:
                                 activity["attendance"] = attendanceMap[key]
