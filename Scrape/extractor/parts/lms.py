@@ -664,6 +664,7 @@ class LmsExtractor:
                 week = (
                     int(cells[0].text.strip())
                     if cells[0].text.strip().isdigit()
+                    and "text-center" in cells[0].get("class", [])
                     else None
                 )
                 title = cells[1].text.strip() if week else cells[0].text.strip()
