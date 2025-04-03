@@ -69,3 +69,4 @@ jobs:
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
             docker-compose -f /home/ubuntu/app/docker-compose.prod.yml pull
             docker-compose -f /home/ubuntu/app/docker-compose.prod.yml up --pull always --no-deps -d
+            docker image prune -a -f
