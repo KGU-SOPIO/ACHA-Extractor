@@ -647,7 +647,8 @@ class LmsExtractor:
         """
 
         def extractAttendance(cell):
-            return cell.text.strip() == "O"
+            text = "".join(cell.find_all(text=True, recursive=False)).strip()
+            return text == "O"
 
         try:
             # 페이지 요청 및 권한 검증
@@ -659,6 +660,7 @@ class LmsExtractor:
             table = content.select("table.user_progress_table tbody tr")
 
             attendanceData = []
+            weekAttendance = False
             for row in table:
                 cells = row.find_all("td")
                 week = (
@@ -668,7 +670,11 @@ class LmsExtractor:
                     else None
                 )
                 title = cells[1].text.strip() if week else cells[0].text.strip()
-                attendance = extractAttendance(cells[-2] if week else cells[-1])
+
+                if week:
+                    weekAttendance = extractAttendance(cells[-1])
+
+                attendance = True if weekAttendance else extractAttendance(cells[-2])
 
                 if title:
                     if week:
