@@ -174,81 +174,85 @@ class KutisExtractor:
 
             # 시간표 요소 선택
             tables = content.find_all("table", class_="list06")
-            timetable = tables[1]
-
-            # 시간표 존재 여부 검증
-            if timetable.find("p", class_="caution"):
-                raise ExtractorException(errorType=ErrorType.TIMETABLE_NOT_EXIST)
-
             classes = []
             days = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
 
-            # 테이블 2차원 그리드 확장
-            grid = []
-            rowspanTracker = {}
+            if len(tables) == 3:
+                timetables = [tables[1], tables[2]]
+            else:
+                timetables = [tables[1]]
 
-            # 시간표 정보 추출
-            rows = timetable.find_all("tr")
-            timetableRows = rows[1:]
-            totalColumns = 7
+            for timetable in timetables:
+                # 시간표 존재 여부 검증
+                if timetable.find("p", class_="caution"):
+                    raise ExtractorException(errorType=ErrorType.TIMETABLE_NOT_EXIST)
 
-            for r, row in enumerate(timetableRows):
-                currentRow = []
-                rowCells = row.find_all(["th", "td"])
-                cellIndex = 0
-                colIndex = 0
-                while colIndex < totalColumns:
-                    if colIndex in rowspanTracker:
-                        cell, origin, remaining = rowspanTracker[colIndex]
-                        currentRow.append((cell, origin))
-                        if remaining - 1 > 0:
-                            rowspanTracker[colIndex] = (cell, origin, remaining - 1)
-                        else:
-                            del rowspanTracker[colIndex]
-                        colIndex += 1
-                    else:
-                        if cellIndex < len(rowCells):
-                            cell = rowCells[cellIndex]
-                            cellIndex += 1
-                            currentRow.append((cell, r))
-                            if cell.has_attr("rowspan"):
-                                try:
-                                    span = int(cell["rowspan"])
-                                except ValueError:
-                                    span = 1
-                                if span > 1:
-                                    rowspanTracker[colIndex] = (cell, r, span - 1)
+                # 테이블 2차원 그리드 확장
+                grid = []
+                rowspanTracker = {}
+
+                # 시간표 정보 추출
+                rows = timetable.find_all("tr")
+                timetableRows = rows[1:]
+                totalColumns = 7
+
+                for r, row in enumerate(timetableRows):
+                    currentRow = []
+                    rowCells = row.find_all(["th", "td"])
+                    cellIndex = 0
+                    colIndex = 0
+                    while colIndex < totalColumns:
+                        if colIndex in rowspanTracker:
+                            cell, origin, remaining = rowspanTracker[colIndex]
+                            currentRow.append((cell, origin))
+                            if remaining - 1 > 0:
+                                rowspanTracker[colIndex] = (cell, origin, remaining - 1)
+                            else:
+                                del rowspanTracker[colIndex]
                             colIndex += 1
                         else:
-                            currentRow.append((None, r))
-                            colIndex += 1
-                grid.append(currentRow)
+                            if cellIndex < len(rowCells):
+                                cell = rowCells[cellIndex]
+                                cellIndex += 1
+                                currentRow.append((cell, r))
+                                if cell.has_attr("rowspan"):
+                                    try:
+                                        span = int(cell["rowspan"])
+                                    except ValueError:
+                                        span = 1
+                                    if span > 1:
+                                        rowspanTracker[colIndex] = (cell, r, span - 1)
+                                colIndex += 1
+                            else:
+                                currentRow.append((None, r))
+                                colIndex += 1
+                    grid.append(currentRow)
 
-            for r, row in enumerate(grid):
-                timeCell, _ = row[0]
-                periodText = timeCell.get_text(strip=True)
-                period = int(periodText)
+                for r, row in enumerate(grid):
+                    timeCell, _ = row[0]
+                    periodText = timeCell.get_text(strip=True)
+                    period = int(periodText)
 
-                for col in range(1, totalColumns):
-                    cell, origin = row[col]
-                    if cell and cell.name == "th" and r == origin:
-                        cellText = cell.get_text(separator="<br>", strip=True)
-                        parts = cellText.split("<br>")
-                        if len(parts) >= 4:
-                            title, identifier, professor, lectureRoom = parts[:4]
-                            classTime = int(cell["rowspan"]) // 2
-                            classes.append(
-                                {
-                                    "title": title,
-                                    "identifier": identifier,
-                                    "professor": professor,
-                                    "lectureRoom": lectureRoom,
-                                    "day": days[col - 1],
-                                    "classTime": classTime,
-                                    "startAt": period,
-                                    "endAt": period + classTime - 1,
-                                }
-                            )
+                    for col in range(1, totalColumns):
+                        cell, origin = row[col]
+                        if cell and cell.name == "th" and r == origin:
+                            cellText = cell.get_text(separator="<br>", strip=True)
+                            parts = cellText.split("<br>")
+                            if len(parts) >= 4:
+                                title, identifier, professor, lectureRoom = parts[:4]
+                                classTime = int(cell["rowspan"]) // 2
+                                classes.append(
+                                    {
+                                        "title": title,
+                                        "identifier": identifier,
+                                        "professor": professor,
+                                        "lectureRoom": lectureRoom,
+                                        "day": days[col - 1],
+                                        "classTime": classTime,
+                                        "startAt": period,
+                                        "endAt": period + classTime - 1,
+                                    }
+                                )
 
             return classes
 
