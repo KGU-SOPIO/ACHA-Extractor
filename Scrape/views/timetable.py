@@ -43,18 +43,7 @@ class TimetableView(GenericAPIView):
 
             except ExtractorException as e:
                 e.logError()
-
-                if e.type == ErrorType.TIMETABLE_NOT_EXIST:
-                    return Response(
-                        {"message": e.message}, status=status.HTTP_404_NOT_FOUND
-                    )
-                elif e.type == ErrorType.KUTIS_PASSWORD_ERROR:
-                    return Response(
-                        {"message": e.message}, status=status.HTTP_401_UNAUTHORIZED
-                    )
-                return Response(
-                    {"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+                return Response({"message": e.message}, status=e.type.httpStatus)
             except Exception as e:
                 ExtractorException(
                     errorType=ErrorType.SYSTEM_ERROR, message=str(e)

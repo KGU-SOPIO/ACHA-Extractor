@@ -54,6 +54,50 @@ class Extractor(KutisExtractor, LmsExtractor):
                 await self.lmsSession.close()
                 self.lmsSession = None
 
+    async def getCourseDetail(self, courseCode: str):
+        """
+        특정 강좌의 데이터를 스크래핑합니다.
+
+        Parameters:
+            courseCode: 강좌 코드
+
+        Returns:
+            course: 강좌 데이터
+        """
+        try:
+            courses = await self._getCourseList(close=False)
+            course = next(
+                (course for course in courses if course["code"] == courseCode), None
+            )
+            if not course:
+                raise ExtractorException(errorType=ErrorType.COURSE_NOT_EXIST)
+
+            course = await self._getCourseData(course)
+            response = {
+                "title": course["title"],
+                "link": course["link"],
+                "identifier": course["identifier"],
+                "code": course["code"],
+                "professor": course["professor"],
+                "noticeCode": course.get("noticeCode"),
+                "notices": course.get("notices", []),
+                "activities": course.get("activities", []),
+            }
+            return response
+
+        except ExtractorException:
+            # 스크래핑 문제 예외 처리
+            raise
+
+        except Exception as e:
+            # 시스템 예외 처리
+            raise ExtractorException(errorType=ErrorType.SYSTEM_ERROR) from e
+
+        finally:
+            if self.lmsSession:
+                await self.lmsSession.close()
+                self.lmsSession = None
+
     async def _getCourseData(self, course: dict) -> dict:
         """
         해당 강좌의 데이터를 스크래핑합니다.
