@@ -115,11 +115,7 @@ class Extractor(KutisExtractor, LmsExtractor):
                             if key in attendanceMap:
                                 activity["attendance"] = attendanceMap[key]
                             else:
-                                raise ExtractorException(
-                                    errorType=ErrorType.SCRAPE_ERROR,
-                                    message="강의 정보와 출석 정보가 일치하지 않습니다.",
-                                    data=f"[Activity] - {activityData}\n[Attendance] - {attendanceData}",
-                                )
+                                activity["attendance"] = False
 
             # 추출된 데이터 추가
             course.update(
