@@ -40,9 +40,7 @@ class NoticeView(GenericAPIView):
 
             except ExtractorException as e:
                 e.logError()
-                return Response(
-                    {"message": e.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+                return Response({"message": e.message}, status=e.type.httpStatus)
             except Exception as e:
                 ExtractorException(
                     errorType=ErrorType.SYSTEM_ERROR, message=str(e)

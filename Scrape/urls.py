@@ -6,6 +6,7 @@ from Scrape.views import (
     AssignmentView,
     AttendanceView,
     AuthenticationView,
+    CourseDetailView,
     CourseView,
     NoticeView,
     TimetableView,
@@ -22,6 +23,11 @@ urlpatterns = [
                 path("auth/", AuthenticationView.as_view(), name="auth"),
                 path("timetable/", TimetableView.as_view(), name="timetable"),
                 path("course/", CourseView.as_view(), name="course"),
+                path(
+                    "course/<str:courseCode>/",
+                    CourseDetailView.as_view(),
+                    name="course_detail",
+                ),
                 path(
                     "course/notice/<str:boardCode>/",
                     NoticeView.as_view(),
