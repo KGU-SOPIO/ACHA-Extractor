@@ -42,7 +42,7 @@ class ErrorType(Enum):
     AUTHENTICATION_FAIL = (
         "인증 실패",
         "학번 또는 비밀번호를 잘못 입력했습니다.",
-        status.HTTP_400_BAD_REQUEST,
+        status.HTTP_401_UNAUTHORIZED,
     )
     INVALID_ACCESS = (
         "잘못된 접근",
@@ -52,7 +52,7 @@ class ErrorType(Enum):
     COURSE_NOT_EXIST = (
         "강좌 미존재",
         "강좌가 존재하지 않습니다.",
-        status.HTTP_400_BAD_REQUEST,
+        status.HTTP_404_NOT_FOUND,
     )
     TIMETABLE_NOT_EXIST = (
         "시간표 미존재",
