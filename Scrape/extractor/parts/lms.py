@@ -385,10 +385,13 @@ class LmsExtractor:
                 linkElement = activity.find("a")
                 if linkElement:
                     activityLink = linkElement.get("href")
-                    activityData["link"] = activityLink
-                    activityData["code"] = Utils.extractCodeFromUrl(
-                        url=activityLink, paramName="id"
-                    )
+                    try:
+                        activityData["code"] = Utils.extractCodeFromUrl(
+                            url=activityLink, paramName="id"
+                        )
+                        activityData["link"] = activityLink
+                    except:
+                        activityLink = None
 
                 # 활성 상태
                 activityData["available"] = (
